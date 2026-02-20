@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Eggy Clicker Ultimate</title>
+<title>Eggy Clicker</title>
 
 <style>
 body{
@@ -13,7 +13,7 @@ background:#fdf6f0;
 text-align:center;
 }
 
-h1{margin-top:20px;}
+h1{margin-top:40px;}
 
 .panel{
 margin:10px auto;
@@ -34,42 +34,28 @@ font-weight:bold;
 }
 
 #homeScreen{
-margin-top:100px;
+margin-top:120px;
 }
 
 #gameScreen{
 display:none;
 }
 
+#clickWrapper{
+position:relative;
+display:inline-block;
+}
+
 #clickArea{
-font-size:110px;
+font-size:120px;
 cursor:pointer;
 animation:bounce 1.2s infinite ease-in-out;
-position:relative;
+user-select:none;
 }
 
 @keyframes bounce{
 0%,100%{transform:translateY(0)}
 50%{transform:translateY(-12px)}
-}
-
-.glow{
-animation:glow 1s infinite alternate;
-}
-
-@keyframes glow{
-from{box-shadow:0 0 10px gold;}
-to{box-shadow:0 0 25px orange;}
-}
-
-#wardrobePanel{background:#ff4d4d;color:white;}
-#shopPanel{background:#4da6ff;color:white;}
-#prestigePanel{background:orange;color:white;}
-#achievementsPanel{background:white;color:black;}
-
-.locked{
-filter:grayscale(100%);
-opacity:0.5;
 }
 
 .floating{
@@ -78,11 +64,13 @@ color:orange;
 font-weight:bold;
 animation:floatUp 1s forwards;
 pointer-events:none;
+left:50%;
+transform:translateX(-50%);
 }
 
 @keyframes floatUp{
-0%{opacity:1;transform:translateY(0)}
-100%{opacity:0;transform:translateY(-40px)}
+0%{opacity:1;top:40%}
+100%{opacity:0;top:0%}
 }
 
 .notification{
@@ -96,6 +84,16 @@ border-radius:10px;
 transition:top 0.4s ease;
 z-index:999;
 }
+
+.locked{
+filter:grayscale(100%);
+opacity:0.5;
+}
+
+#wardrobePanel{background:#ff4d4d;color:white;}
+#shopPanel{background:#4da6ff;color:white;}
+#prestigePanel{background:orange;color:white;}
+#achievementsPanel{background:white;color:black;}
 
 </style>
 </head>
@@ -113,7 +111,9 @@ z-index:999;
 <div id="points"></div>
 <div id="prestigeInfo"></div>
 
+<div id="clickWrapper">
 <div id="clickArea">🥚</div>
+</div>
 
 <div class="panel" id="wardrobePanel">
 <h3>Wardrobe</h3>
@@ -127,7 +127,7 @@ z-index:999;
 <button onclick="buyCrit()" id="critBtn"></button>
 </div>
 
-<div class="panel glow" id="prestigePanel">
+<div class="panel" id="prestigePanel">
 <h3>Prestige</h3>
 <button onclick="prestige()" id="prestigeBtn"></button>
 </div>
@@ -149,21 +149,11 @@ z-index:999;
 
 <div id="notification" class="notification"></div>
 
-<audio id="music" loop></audio>
-<audio id="clickSound"></audio>
-<audio id="critSound"></audio>
+<audio id="music" loop src="https://cdn.pixabay.com/audio/2022/03/15/audio_c8e59a0d0c.mp3"></audio>
+<audio id="clickSound" src="https://cdn.pixabay.com/audio/2022/03/15/audio_9b0d68f6d4.mp3"></audio>
+<audio id="critSound" src="https://cdn.pixabay.com/audio/2022/03/10/audio_8e72d0f5b3.mp3"></audio>
 
 <script>
-
-const music=document.getElementById("music");
-music.src="https://cdn.pixabay.com/audio/2022/03/15/audio_c8e59a0d0c.mp3";
-music.volume=0.3;
-
-const clickSound=document.getElementById("clickSound");
-clickSound.src="https://cdn.pixabay.com/audio/2022/03/15/audio_9b0d68f6d4.mp3";
-
-const critSound=document.getElementById("critSound");
-critSound.src="https://cdn.pixabay.com/audio/2022/03/10/audio_8e72d0f5b3.mp3";
 
 let startedMusic=false;
 
@@ -211,25 +201,25 @@ document.getElementById("gameScreen").style.display="block";
 
 function manualSave(){
 game.lastPlayed=Date.now();
-localStorage.setItem("eggyUltimate",JSON.stringify(game));
+localStorage.setItem("eggySave",JSON.stringify(game));
 notify("Game Saved!");
 }
 
 function manualLoad(){
-let data=localStorage.getItem("eggyUltimate");
+let data=localStorage.getItem("eggySave");
 if(data){
 game=JSON.parse(data);
-applyOfflineEarnings();
+applyOffline();
 updateUI();
-notify("Game Loaded!");
+notify("Loaded!");
 }
 }
 
 function loadGameFromStorage(){
-let data=localStorage.getItem("eggyUltimate");
+let data=localStorage.getItem("eggySave");
 if(data){
 game=JSON.parse(data);
-applyOfflineEarnings();
+applyOffline();
 }else{
 game=JSON.parse(JSON.stringify(defaultGame));
 }
@@ -237,48 +227,37 @@ showGame();
 updateUI();
 }
 
-function deleteData(){
-if(confirm("Delete ALL saved data?")){
-localStorage.removeItem("eggyUltimate");
-location.reload();
-}
-}
-
 function exportSave(){
-let code=btoa(JSON.stringify(game));
-prompt("Copy this save code:",code);
+prompt("Copy this:",btoa(JSON.stringify(game)));
 }
 
 function importSave(){
-let code=prompt("Paste your save code:");
+let code=prompt("Paste save code:");
 if(code){
 game=JSON.parse(atob(code));
 updateUI();
 }
 }
 
-function applyOfflineEarnings(){
-let now=Date.now();
-let diff=(now-game.lastPlayed)/1000;
+function deleteData(){
+if(confirm("Delete all data?")){
+localStorage.removeItem("eggySave");
+location.reload();
+}
+}
+
+function applyOffline(){
+let diff=(Date.now()-game.lastPlayed)/1000;
 let earned=Math.floor(diff*game.passive);
 if(earned>0){
 game.points+=earned;
 notify("Offline Earnings: "+earned);
 }
-game.lastPlayed=now;
-}
-
-function dailyReward(){
-let now=Date.now();
-if(now-game.lastDaily>86400000){
-game.points+=1000;
-game.lastDaily=now;
-notify("Daily Reward: 1000 Yolk!");
-}
+game.lastPlayed=Date.now();
 }
 
 function updateUI(){
-document.getElementById("points").innerText="Yolk Points: "+Math.floor(game.points);
+document.getElementById("points").innerText="Yolk: "+Math.floor(game.points);
 document.getElementById("eggName").innerText="Egg: "+tiers[Math.floor(game.prestigeLevel/2)]+" "+forms[game.form];
 document.getElementById("prestigeBtn").innerText="Prestige Cost: "+(5000*(game.prestigeLevel+1));
 clickBtn.innerText="+1 Click ("+game.clickCost+")";
@@ -288,17 +267,23 @@ renderWardrobe();
 renderAchievements();
 }
 
-document.getElementById("clickArea").addEventListener("click",function(e){
+document.getElementById("clickArea").addEventListener("click",function(){
 
-if(!startedMusic){music.play();startedMusic=true;}
+if(!startedMusic){
+document.getElementById("music").volume=0.3;
+document.getElementById("music").play();
+startedMusic=true;
+}
 
-clickSound.play();
+document.getElementById("clickSound").currentTime=0;
+document.getElementById("clickSound").play();
 
 let gain=game.clickValue;
+
 if(Math.random()<game.critChance){
 gain*=5;
-critSound.play();
-notify("CRITICAL!");
+document.getElementById("critSound").play();
+notify("CRITICAL HIT!");
 }
 
 game.points+=gain;
@@ -307,9 +292,7 @@ game.totalClicks++;
 let float=document.createElement("div");
 float.className="floating";
 float.innerText="+"+gain;
-float.style.left=e.offsetX+"px";
-float.style.top=e.offsetY+"px";
-this.appendChild(float);
+document.getElementById("clickWrapper").appendChild(float);
 setTimeout(()=>float.remove(),1000);
 
 updateUI();
@@ -384,10 +367,27 @@ achDiv.innerHTML="";
 let achList=[
 ["Click 10 times",game.totalClicks>=10],
 ["Click 100 times",game.totalClicks>=100],
-["Reach 1k Points",game.points>=1000],
+["Click 1000 times",game.totalClicks>=1000],
+["Click 10k times",game.totalClicks>=10000],
+["Reach 1k",game.points>=1000],
+["Reach 10k",game.points>=10000],
+["Reach 100k",game.points>=100000],
 ["Buy Cool Eggy",game.ownedForms.includes(1)],
-["First Prestige",game.prestigeLevel>=1]
+["Buy Top Hat",game.ownedForms.includes(2)],
+["Buy Crown",game.ownedForms.includes(3)],
+["First Prestige",game.prestigeLevel>=1],
+["Bronze Tier",game.prestigeLevel>=2],
+["Silver Tier",game.prestigeLevel>=4],
+["Gold Tier",game.prestigeLevel>=6],
+["Diamond Tier",game.prestigeLevel>=8],
+["5% Crit",game.critChance>=0.05],
+["25% Crit",game.critChance>=0.25],
+["50% Crit",game.critChance>=0.5],
+["10 Auto",game.passive>=10],
+["100 Click Power",game.clickValue>=100],
+["Millionaire",game.points>=1000000]
 ];
+
 achList.forEach((a,i)=>{
 let div=document.createElement("div");
 div.innerText=a[0];
