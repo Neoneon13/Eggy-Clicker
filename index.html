@@ -197,13 +197,13 @@ function buyAuto(){
 if(points>=autoCost){
 points-=autoCost;
 passive++;
-autoCost=Math.floor(autoCost*1.6);
+autoCost=Math.floor(autoCost*1.1);
 updateUI();
 }
 }
 
 function upgradeEggy(){
-let cost=(form+3)*1000;
+let cost=(form+1)*1000;
 if(form<3 && points>=cost){
 points-=cost;
 form++;
