@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Eggy Clicker</title>
+<style>
+body {
+    background: #fdf6f0;
+    text-align: center;
+    font-family: Arial, sans-serif;
+}
+
+#eggy {
+    font-size: 120px;
+    cursor: pointer;
+    transition: transform 0.1s;
+}
+
+#eggy:active {
+    transform: scale(1.1);
+}
+
+button {
+    padding: 10px 20px;
+    margin: 10px;
+    font-size: 16px;
+    cursor: pointer;
+}
+</style>
+</head>
+<body>
+
+<h1>🥚 Eggy Clicker</h1>
+
+<h2>Yolk Points: <span id="points">0</span></h2>
+
+<div id="eggy">🥚</div>
+
+<br>
+
+<button id="coolUnlock" style="display:none;">Unlock Cool Eggy (500)</button>
+<button id="topUnlock" style="display:none;">Unlock Top Hat Eggy (2000)</button>
+<button id="crownUnlock" style="display:none;">Unlock Crown Eggy (10000)</button>
+
+<script>
+let points = 0;
+let clickValue = 1;
+let passiveIncome = 0;
+
+let currentForm = "normal";
+
+const pointsDisplay = document.getElementById("points");
+const eggy = document.getElementById("eggy");
+
+function updateUI() {
+    pointsDisplay.innerText = points;
+
+    if (points >= 500 && currentForm === "normal") {
+        document.getElementById("coolUnlock").style.display = "inline";
+    }
+
+    if (points >= 2000 && currentForm === "cool") {
+        document.getElementById("topUnlock").style.display = "inline";
+    }
+
+    if (points >= 10000 && currentForm === "top") {
+        document.getElementById("crownUnlock").style.display = "inline";
+    }
+}
+
+eggy.addEventListener("click", function() {
+    points += clickValue;
+    updateUI();
+});
+
+setInterval(function() {
+    points += passiveIncome;
+    updateUI();
+}, 1000);
+
+document.getElementById("coolUnlock").onclick = function() {
+    currentForm = "cool";
+    clickValue = 2;
+    passiveIncome = 1;
+    eggy.innerText = "😎🥚";
+    this.style.display = "none";
+};
+
+document.getElementById("topUnlock").onclick = function() {
+    currentForm = "top";
+    clickValue = 5;
+    passiveIncome = 5;
+    eggy.innerText = "🎩🥚";
+    this.style.display = "none";
+};
+
+document.getElementById("crownUnlock").onclick = function() {
+    currentForm = "crown";
+    clickValue = 20;
+    passiveIncome = 25;
+    eggy.innerText = "👑🥚";
+    this.style.display = "none";
+};
+</script>
+
+</body>
+</html>
