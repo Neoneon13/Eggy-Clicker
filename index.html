@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Eggy Clicker Ultimate</title>
+<title>Eggy Clicker Polished</title>
 
 <style>
 body{
@@ -36,11 +36,7 @@ margin-top:6px;
 font-size:110px;
 cursor:pointer;
 animation:bounce 1.2s infinite ease-in-out;
-}
-
-#clickArea img{
-width:70vw;
-max-width:350px;
+position:relative;
 }
 
 @keyframes bounce{
@@ -55,23 +51,42 @@ opacity:0.5;
 
 .notification{
 position:fixed;
-top:-50px;
+top:-80px;
 left:50%;
 transform:translateX(-50%);
 background:gold;
 padding:10px 20px;
 border-radius:10px;
-transition:top 0.5s;
+transition:top 0.4s ease;
+z-index:999;
 }
 
+.crit{
+position:absolute;
+color:red;
+font-weight:bold;
+animation:critPop 1s forwards;
+}
+
+@keyframes critPop{
+0%{opacity:1; transform:translateY(0) scale(1)}
+100%{opacity:0; transform:translateY(-40px) scale(1.5)}
+}
+
+.wardrobe-item{
+padding:6px;
+border:1px solid #ccc;
+margin-top:5px;
+cursor:pointer;
+}
 </style>
 </head>
 <body>
 
-<h1>🥚 Eggy Clicker Ultimate</h1>
+<h1>🥚 Eggy Clicker</h1>
 <div id="eggName"></div>
 <div id="points"></div>
-<div id="prestigeTier"></div>
+<div id="prestigeInfo"></div>
 
 <div id="clickArea">🥚</div>
 
@@ -80,20 +95,19 @@ transition:top 0.5s;
 <button onclick="buyClick()" id="clickBtn"></button>
 <button onclick="buyAuto()" id="autoBtn"></button>
 <button onclick="buyCrit()" id="critBtn"></button>
-<button onclick="openWardrobe()">👕 Wardrobe</button>
 <button onclick="prestige()">🔥 Prestige</button>
+<button onclick="toggleWardrobe()">👕 Wardrobe</button>
+<button onclick="deleteSave()">🗑 Reset Game</button>
+</div>
+
+<div class="panel" id="wardrobePanel" style="display:none;">
+<h3>Wardrobe</h3>
+<div id="wardrobeList"></div>
 </div>
 
 <div class="panel">
 <h3>🏆 Achievements</h3>
 <div id="achievements"></div>
-</div>
-
-<div class="panel">
-<h3>💾 Save</h3>
-<button onclick="exportSave()">Export Save Code</button>
-<button onclick="importSave()">Import Save Code</button>
-<button onclick="deleteSave()">Delete Save</button>
 </div>
 
 <div id="notification" class="notification"></div>
@@ -104,162 +118,199 @@ transition:top 0.5s;
 
 <script>
 
-let points=0;
-let clickValue=1;
-let passive=0;
-let critChance=0;
-let prestigeLevel=0;
-let prestigeTier=0;
-let clickCost=50;
-let autoCost=200;
-let critCost=300;
-let form=0;
-let ownedForms=[0];
-let achievementsUnlocked=[];
+let saveKey="eggySaveV3";
 
-const tiers=["None","Bronze","Silver","Gold","Diamond"];
+let game={
+points:0,
+clickValue:1,
+passive:0,
+critChance:0,
+clickCost:50,
+autoCost:200,
+critCost:300,
+form:0,
+ownedForms:[0],
+prestigeLevel:0,
+achievements:[]
+};
+
 const forms=["Normal","Cool","Top Hat","Crown"];
 const emojis=["🥚","😎🥚","🎩🥚","👑🥚"];
+const tiers=["None","Bronze","Silver","Gold","Diamond"];
 
 const clickArea=document.getElementById("clickArea");
 const pointsDisplay=document.getElementById("points");
 const eggName=document.getElementById("eggName");
-const prestigeDisplay=document.getElementById("prestigeTier");
-const achDiv=document.getElementById("achievements");
+const prestigeInfo=document.getElementById("prestigeInfo");
 
-document.getElementById("music").volume=0.3;
-document.body.addEventListener("click",()=>{document.getElementById("music").play();},{once:true});
+document.body.addEventListener("click",()=>{
+document.getElementById("music").play();
+},{once:true});
+
+function saveGame(){
+localStorage.setItem(saveKey,JSON.stringify(game));
+}
+
+function loadGame(){
+let data=localStorage.getItem(saveKey);
+if(data){
+game=JSON.parse(data);
+}
+}
 
 function updateUI(){
-pointsDisplay.innerText="Yolk Points: "+Math.floor(points);
-eggName.innerText="Current Egg: "+tiers[prestigeTier]+" "+forms[form];
-prestigeDisplay.innerText="Prestige Tier: "+tiers[prestigeTier]+" (Cost "+(5000*(prestigeLevel+1))+")";
-clickBtn.innerText="+1 Click ("+clickCost+")";
-autoBtn.innerText="+1 Auto/sec ("+autoCost+")";
-critBtn.innerText="Upgrade Critical Chance ("+critCost+")";
+pointsDisplay.innerText="Yolk Points: "+Math.floor(game.points);
+eggName.innerText="Egg: "+tiers[getTier()]+" "+forms[game.form];
+prestigeInfo.innerText="Prestige Cost: "+getPrestigeCost();
+clickBtn.innerText="+1 Click ("+game.clickCost+")";
+autoBtn.innerText="+1 Auto/sec ("+game.autoCost+")";
+critBtn.innerText="Crit Chance ("+game.critCost+")";
+renderWardrobe();
 renderAchievements();
+saveGame();
 }
 
-clickArea.addEventListener("click",function(){
-let gain=clickValue;
-if(Math.random()<critChance){
-gain*=5;
+function getPrestigeCost(){
+return 5000*(game.prestigeLevel+1);
 }
-points+=gain;
+
+function getTier(){
+return Math.min(Math.floor(game.prestigeLevel/2)+1,4);
+}
+
+clickArea.addEventListener("click",function(e){
+let gain=game.clickValue;
+if(Math.random()<game.critChance){
+gain*=5;
+showCrit(e);
+}
+game.points+=gain;
 checkAchievements();
 updateUI();
 });
 
-setInterval(()=>{points+=passive;updateUI();},1000);
+setInterval(()=>{
+game.points+=game.passive;
+updateUI();
+},1000);
+
+function showCrit(e){
+let c=document.createElement("div");
+c.className="crit";
+c.innerText="CRIT!";
+c.style.left=e.offsetX+"px";
+c.style.top=e.offsetY+"px";
+clickArea.appendChild(c);
+setTimeout(()=>c.remove(),1000);
+}
 
 function buyClick(){
-if(points>=clickCost){
-points-=clickCost;
-clickValue++;
-clickCost=Math.floor(clickCost*1.5);
-updateUI();
+if(game.points>=game.clickCost){
+game.points-=game.clickCost;
+game.clickValue++;
+game.clickCost=Math.floor(game.clickCost*1.5);
 }
 }
 
 function buyAuto(){
-if(points>=autoCost){
-points-=autoCost;
-passive++;
-autoCost=Math.floor(autoCost*1.6);
-updateUI();
+if(game.points>=game.autoCost){
+game.points-=game.autoCost;
+game.passive++;
+game.autoCost=Math.floor(game.autoCost*1.6);
 }
 }
 
 function buyCrit(){
-if(points>=critCost){
-points-=critCost;
-critChance+=0.05;
-critCost=Math.floor(critCost*1.8);
-updateUI();
-}
-}
-
-function openWardrobe(){
-let choice=prompt("Buy: 1 Cool (1000), 2 Top Hat (2500), 3 Crown (5000)");
-let prices=[1000,2500,5000];
-if(choice>=1 && choice<=3){
-let index=parseInt(choice);
-if(points>=prices[index-1]){
-points-=prices[index-1];
-if(!ownedForms.includes(index)) ownedForms.push(index);
-form=index;
-updateUI();
-}
+if(game.points>=game.critCost){
+game.points-=game.critCost;
+game.critChance+=0.05;
+game.critCost=Math.floor(game.critCost*1.8);
 }
 }
 
 function prestige(){
-let cost=5000*(prestigeLevel+1);
-if(points>=cost){
-points=0;
-clickValue=1;
-passive=0;
-critChance=0;
-clickCost=50;
-autoCost=200;
-critCost=300;
-prestigeLevel++;
-prestigeTier=Math.min(Math.floor(prestigeLevel/2)+1,4);
-updateUI();
+if(game.points>=getPrestigeCost()){
+game.points=0;
+game.clickValue=1;
+game.passive=0;
+game.critChance=0;
+game.clickCost=50;
+game.autoCost=200;
+game.critCost=300;
+game.prestigeLevel++;
+notify("Prestiged to "+tiers[getTier()]);
 }
 }
 
-function renderAchievements(){
-achDiv.innerHTML="";
-let list=[
-["Thanks for Playing!",true],
-["Reach 1000 Points",points>=1000],
-["Unlock Cool Eggy",ownedForms.includes(1)],
-["Unlock Top Hat Eggy",ownedForms.includes(2)],
-["Unlock Crown Eggy",ownedForms.includes(3)]
-];
-list.forEach((a,i)=>{
+function toggleWardrobe(){
+let panel=document.getElementById("wardrobePanel");
+panel.style.display=panel.style.display==="none"?"block":"none";
+}
+
+function renderWardrobe(){
+let list=document.getElementById("wardrobeList");
+list.innerHTML="";
+let prices=[0,1000,2500,5000];
+for(let i=0;i<forms.length;i++){
 let div=document.createElement("div");
-div.innerText=a[0];
-if(!a[1]) div.className="locked";
-if(a[1] && !achievementsUnlocked.includes(i)){
-achievementsUnlocked.push(i);
+div.className="wardrobe-item";
+div.innerText=forms[i]+" ("+prices[i]+")";
+if(!game.ownedForms.includes(i)) div.classList.add("locked");
+div.onclick=function(){
+if(game.ownedForms.includes(i)){
+game.form=i;
+}else if(game.points>=prices[i]){
+game.points-=prices[i];
+game.ownedForms.push(i);
+game.form=i;
+}
+updateUI();
+};
+list.appendChild(div);
+}
+clickArea.innerText=emojis[game.form];
+}
+
+function renderAchievements(){
+let achDiv=document.getElementById("achievements");
+achDiv.innerHTML="";
+let achList=[
+["Thanks for Playing!",true],
+["1000 Points",game.points>=1000],
+["Own Cool Eggy",game.ownedForms.includes(1)],
+["Own Top Hat Eggy",game.ownedForms.includes(2)],
+["Own Crown Eggy",game.ownedForms.includes(3)]
+];
+achList.forEach((a,i)=>{
+let d=document.createElement("div");
+d.innerText=a[0];
+if(!a[1]) d.className="locked";
+if(a[1] && !game.achievements.includes(i)){
+game.achievements.push(i);
 notify(a[0]);
 }
-achDiv.appendChild(div);
+achDiv.appendChild(d);
 });
 }
 
 function notify(text){
 let n=document.getElementById("notification");
-n.innerText="Achievement Unlocked: "+text;
+n.innerText="Achievement: "+text;
 n.style.top="20px";
-setTimeout(()=>{n.style.top="-50px";},3000);
+setTimeout(()=>{n.style.top="-80px";},2500);
 }
 
-function exportSave(){
-let data=btoa(JSON.stringify({
-points,clickValue,passive,critChance,prestigeLevel,
-prestigeTier,ownedForms,achievementsUnlocked
-}));
-prompt("Copy your save code:",data);
-}
-
-function importSave(){
-let code=prompt("Paste save code:");
-if(code){
-let data=JSON.parse(atob(code));
-Object.assign(window,data);
-updateUI();
-}
+function checkAchievements(){
 }
 
 function deleteSave(){
-if(confirm("Delete all data?")){
+if(confirm("Reset everything?")){
+localStorage.removeItem(saveKey);
 location.reload();
 }
 }
 
+loadGame();
 updateUI();
 
 </script>
