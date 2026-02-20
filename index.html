@@ -107,7 +107,7 @@ button {
 <h3>🛒 Shop</h3>
 <button onclick="buyClick()" id="clickBtn"></button>
 <button onclick="buyAuto()" id="autoBtn"></button>
-<button onclick="buyBackground()">Buy New Background (500)</button>
+<button onclick="buyBackground()">Buy New Background (100)</button>
 <button onclick="toggleMode()">Toggle Emoji / Image</button>
 <button onclick="prestige()">🔥 Prestige</button>
 </div>
@@ -240,8 +240,8 @@ updateUI();
 }
 
 function buyBackground(){
-if(points>=500){
-points-=500;
+if(points>=100){
+points-=100;
 document.body.style.background=
 "#"+Math.floor(Math.random()*16777215).toString(16);
 updateUI();
