@@ -3,73 +3,139 @@
 <head>
 <meta charset="UTF-8">
 <title>Eggy Clicker</title>
+
 <style>
 body {
+    margin: 0;
+    height: 100vh;
     background: #fdf6f0;
-    text-align: center;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
     font-family: Arial, sans-serif;
 }
 
+h1 {
+    margin-top: 20px;
+}
+
+#points {
+    font-size: 28px;
+    margin-bottom: 10px;
+}
+
+#game {
+    display: flex;
+    flex-direction: row;
+    width: 100%;
+    justify-content: center;
+    align-items: center;
+}
+
 #eggy {
-    font-size: 120px;
+    width: 550px;
+    max-width: 80vw;
     cursor: pointer;
-    transition: transform 0.1s;
+    transition: transform 0.1s ease;
 }
 
 #eggy:active {
-    transform: scale(1.1);
+    transform: scale(1.15);
+}
+
+#shop {
+    margin-left: 40px;
+    background: white;
+    padding: 20px;
+    border-radius: 10px;
+    box-shadow: 0 0 10px rgba(0,0,0,0.1);
+    width: 220px;
 }
 
 button {
-    padding: 10px 20px;
-    margin: 10px;
-    font-size: 16px;
+    width: 100%;
+    padding: 10px;
+    margin-top: 8px;
     cursor: pointer;
+}
+
+.floating {
+    position: absolute;
+    font-weight: bold;
+    color: orange;
+    pointer-events: none;
+    animation: floatUp 1s ease-out forwards;
+}
+
+@keyframes floatUp {
+    from { opacity: 1; transform: translateY(0); }
+    to { opacity: 0; transform: translateY(-50px); }
 }
 </style>
 </head>
 <body>
 
 <h1>🥚 Eggy Clicker</h1>
+<div id="points">Yolk Points: 0</div>
 
-<h2>Yolk Points: <span id="points">0</span></h2>
+<div id="game">
 
-<div id="eggy">🥚</div>
+    <img id="eggy" src="eggy.png">
 
-<br>
+    <div id="shop">
+        <h3>🛒 Shop</h3>
+        <button onclick="buyClickUpgrade()">+1 Click (Cost: 50)</button>
+        <button onclick="buyMultiplier()">x2 Multiplier (Cost: 200)</button>
+        <button onclick="buyAuto()">Auto Egg (+1/sec) (Cost: 300)</button>
+        <button onclick="unlockCool()">Unlock Cool Eggy (500)</button>
+        <button onclick="unlockTop()">Unlock Top Hat Eggy (2000)</button>
+        <button onclick="unlockCrown()">Unlock Crown Eggy (10000)</button>
+    </div>
 
-<button id="coolUnlock" style="display:none;">Unlock Cool Eggy (500)</button>
-<button id="topUnlock" style="display:none;">Unlock Top Hat Eggy (2000)</button>
-<button id="crownUnlock" style="display:none;">Unlock Crown Eggy (10000)</button>
+</div>
 
 <script>
 let points = 0;
 let clickValue = 1;
+let multiplier = 1;
 let passiveIncome = 0;
+let form = "normal";
 
-let currentForm = "normal";
-
-const pointsDisplay = document.getElementById("points");
 const eggy = document.getElementById("eggy");
+const pointsDisplay = document.getElementById("points");
 
 function updateUI() {
-    pointsDisplay.innerText = points;
-
-    if (points >= 500 && currentForm === "normal") {
-        document.getElementById("coolUnlock").style.display = "inline";
-    }
-
-    if (points >= 2000 && currentForm === "cool") {
-        document.getElementById("topUnlock").style.display = "inline";
-    }
-
-    if (points >= 10000 && currentForm === "top") {
-        document.getElementById("crownUnlock").style.display = "inline";
-    }
+    pointsDisplay.innerText = "Yolk Points: " + points;
+    localStorage.setItem("eggySave", JSON.stringify({
+        points, clickValue, multiplier, passiveIncome, form
+    }));
 }
 
-eggy.addEventListener("click", function() {
-    points += clickValue;
+function loadGame() {
+    let save = JSON.parse(localStorage.getItem("eggySave"));
+    if (save) {
+        points = save.points;
+        clickValue = save.clickValue;
+        multiplier = save.multiplier;
+        passiveIncome = save.passiveIncome;
+        form = save.form;
+        eggy.src = form + ".png";
+    }
+    updateUI();
+}
+
+eggy.addEventListener("click", function(e) {
+    let gain = clickValue * multiplier;
+    points += gain;
+
+    let float = document.createElement("div");
+    float.className = "floating";
+    float.innerText = "+" + gain;
+    float.style.left = e.pageX + "px";
+    float.style.top = e.pageY + "px";
+    document.body.appendChild(float);
+    setTimeout(() => float.remove(), 1000);
+
     updateUI();
 });
 
@@ -78,29 +144,64 @@ setInterval(function() {
     updateUI();
 }, 1000);
 
-document.getElementById("coolUnlock").onclick = function() {
-    currentForm = "cool";
-    clickValue = 2;
-    passiveIncome = 1;
-    eggy.innerText = "😎🥚";
-    this.style.display = "none";
-};
+function buyClickUpgrade() {
+    if (points >= 50) {
+        points -= 50;
+        clickValue += 1;
+        updateUI();
+    }
+}
 
-document.getElementById("topUnlock").onclick = function() {
-    currentForm = "top";
-    clickValue = 5;
-    passiveIncome = 5;
-    eggy.innerText = "🎩🥚";
-    this.style.display = "none";
-};
+function buyMultiplier() {
+    if (points >= 200) {
+        points -= 200;
+        multiplier *= 2;
+        updateUI();
+    }
+}
 
-document.getElementById("crownUnlock").onclick = function() {
-    currentForm = "crown";
-    clickValue = 20;
-    passiveIncome = 25;
-    eggy.innerText = "👑🥚";
-    this.style.display = "none";
-};
+function buyAuto() {
+    if (points >= 300) {
+        points -= 300;
+        passiveIncome += 1;
+        updateUI();
+    }
+}
+
+function unlockCool() {
+    if (points >= 500 && form === "normal") {
+        points -= 500;
+        form = "cool";
+        clickValue += 1;
+        passiveIncome += 1;
+        eggy.src = "cool.png";
+        updateUI();
+    }
+}
+
+function unlockTop() {
+    if (points >= 2000 && form === "cool") {
+        points -= 2000;
+        form = "tophat";
+        clickValue += 3;
+        passiveIncome += 3;
+        eggy.src = "tophat.png";
+        updateUI();
+    }
+}
+
+function unlockCrown() {
+    if (points >= 10000 && form === "tophat") {
+        points -= 10000;
+        form = "crown";
+        clickValue += 10;
+        passiveIncome += 10;
+        eggy.src = "crown.png";
+        updateUI();
+    }
+}
+
+loadGame();
 </script>
 
 </body>
