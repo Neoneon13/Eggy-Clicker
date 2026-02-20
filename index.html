@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Eggy Clicker Polished</title>
+<title>Eggy Clicker v4</title>
 
 <style>
 body{
@@ -16,20 +16,43 @@ overflow-x:hidden;
 
 h1{margin-top:10px;}
 
+#eggName,#points,#prestigeInfo{
+margin:5px;
+font-weight:bold;
+}
+
 .panel{
-background:white;
 margin:10px auto;
-padding:10px;
-border-radius:10px;
-width:90%;
+padding:12px;
+border-radius:12px;
+width:92%;
 max-width:420px;
-box-shadow:0 0 10px rgba(0,0,0,0.1);
+box-shadow:0 0 12px rgba(0,0,0,0.15);
+}
+
+#wardrobePanel{
+background:#ff4d4d;
+color:white;
+}
+
+#shopPanel{
+background:#4da6ff;
+color:white;
+}
+
+#achievementsPage{
+display:none;
+background:white;
+color:black;
 }
 
 button{
 width:100%;
-padding:8px;
+padding:10px;
 margin-top:6px;
+border:none;
+border-radius:8px;
+font-weight:bold;
 }
 
 #clickArea{
@@ -41,7 +64,20 @@ position:relative;
 
 @keyframes bounce{
 0%,100%{transform:translateY(0)}
-50%{transform:translateY(-10px)}
+50%{transform:translateY(-12px)}
+}
+
+.floating{
+position:absolute;
+color:orange;
+font-weight:bold;
+animation:floatUp 1s forwards;
+pointer-events:none;
+}
+
+@keyframes floatUp{
+0%{opacity:1;transform:translateY(0)}
+100%{opacity:0;transform:translateY(-40px)}
 }
 
 .locked{
@@ -61,24 +97,6 @@ transition:top 0.4s ease;
 z-index:999;
 }
 
-.crit{
-position:absolute;
-color:red;
-font-weight:bold;
-animation:critPop 1s forwards;
-}
-
-@keyframes critPop{
-0%{opacity:1; transform:translateY(0) scale(1)}
-100%{opacity:0; transform:translateY(-40px) scale(1.5)}
-}
-
-.wardrobe-item{
-padding:6px;
-border:1px solid #ccc;
-margin-top:5px;
-cursor:pointer;
-}
 </style>
 </head>
 <body>
@@ -90,38 +108,52 @@ cursor:pointer;
 
 <div id="clickArea">🥚</div>
 
-<div class="panel">
+<div class="panel" id="wardrobePanel">
+<h3>👕 Wardrobe</h3>
+<div id="wardrobeList"></div>
+</div>
+
+<div class="panel" id="shopPanel">
 <h3>🛒 Shop</h3>
 <button onclick="buyClick()" id="clickBtn"></button>
 <button onclick="buyAuto()" id="autoBtn"></button>
 <button onclick="buyCrit()" id="critBtn"></button>
 <button onclick="prestige()">🔥 Prestige</button>
-<button onclick="toggleWardrobe()">👕 Wardrobe</button>
-<button onclick="deleteSave()">🗑 Reset Game</button>
+<button onclick="toggleAchievements()">🏆 Achievements</button>
+<button onclick="resetGame()">🗑 Reset</button>
 </div>
 
-<div class="panel" id="wardrobePanel" style="display:none;">
-<h3>Wardrobe</h3>
-<div id="wardrobeList"></div>
-</div>
-
-<div class="panel">
-<h3>🏆 Achievements</h3>
+<div class="panel" id="achievementsPage">
+<h3>🏆 All Achievements</h3>
 <div id="achievements"></div>
+<button onclick="toggleAchievements()">Close</button>
 </div>
 
 <div id="notification" class="notification"></div>
 
-<audio id="music" loop>
-<source src="https://cdn.pixabay.com/audio/2022/03/15/audio_c8e59a0d0c.mp3">
-</audio>
+<audio id="music" loop></audio>
+<audio id="clickSound"></audio>
+<audio id="critSound"></audio>
 
 <script>
 
-let saveKey="eggySaveV3";
+const music=document.getElementById("music");
+music.src="https://cdn.pixabay.com/audio/2022/03/15/audio_c8e59a0d0c.mp3";
+music.volume=0.3;
+
+const clickSound=document.getElementById("clickSound");
+clickSound.src="https://cdn.pixabay.com/audio/2022/03/15/audio_9b0d68f6d4.mp3";
+clickSound.volume=0.3;
+
+const critSound=document.getElementById("critSound");
+critSound.src="https://cdn.pixabay.com/audio/2022/03/10/audio_8e72d0f5b3.mp3";
+critSound.volume=0.4;
+
+let startedMusic=false;
 
 let game={
 points:0,
+totalClicks:0,
 clickValue:1,
 passive:0,
 critChance:0,
@@ -136,32 +168,28 @@ achievements:[]
 
 const forms=["Normal","Cool","Top Hat","Crown"];
 const emojis=["🥚","😎🥚","🎩🥚","👑🥚"];
+const wardrobePrices=[0,1000,2500,5000];
 const tiers=["None","Bronze","Silver","Gold","Diamond"];
 
 const clickArea=document.getElementById("clickArea");
-const pointsDisplay=document.getElementById("points");
-const eggName=document.getElementById("eggName");
-const prestigeInfo=document.getElementById("prestigeInfo");
-
-document.body.addEventListener("click",()=>{
-document.getElementById("music").play();
-},{once:true});
 
 function saveGame(){
-localStorage.setItem(saveKey,JSON.stringify(game));
+localStorage.setItem("eggySaveV4",JSON.stringify(game));
 }
 
 function loadGame(){
-let data=localStorage.getItem(saveKey);
-if(data){
-game=JSON.parse(data);
+let data=localStorage.getItem("eggySaveV4");
+if(data) game=JSON.parse(data);
 }
+
+function getTier(){
+return Math.min(Math.floor(game.prestigeLevel/2)+1,4);
 }
 
 function updateUI(){
-pointsDisplay.innerText="Yolk Points: "+Math.floor(game.points);
-eggName.innerText="Egg: "+tiers[getTier()]+" "+forms[game.form];
-prestigeInfo.innerText="Prestige Cost: "+getPrestigeCost();
+document.getElementById("points").innerText="Yolk Points: "+Math.floor(game.points);
+document.getElementById("eggName").innerText="Egg: "+tiers[getTier()]+" "+forms[game.form];
+document.getElementById("prestigeInfo").innerText="Prestige Cost: "+(5000*(game.prestigeLevel+1));
 clickBtn.innerText="+1 Click ("+game.clickCost+")";
 autoBtn.innerText="+1 Auto/sec ("+game.autoCost+")";
 critBtn.innerText="Crit Chance ("+game.critCost+")";
@@ -170,21 +198,36 @@ renderAchievements();
 saveGame();
 }
 
-function getPrestigeCost(){
-return 5000*(game.prestigeLevel+1);
-}
-
-function getTier(){
-return Math.min(Math.floor(game.prestigeLevel/2)+1,4);
-}
-
 clickArea.addEventListener("click",function(e){
+
+if(!startedMusic){
+music.play();
+startedMusic=true;
+}
+
+clickSound.currentTime=0;
+clickSound.play();
+
 let gain=game.clickValue;
+
 if(Math.random()<game.critChance){
 gain*=5;
-showCrit(e);
+critSound.currentTime=0;
+critSound.play();
+notify("CRITICAL HIT!");
 }
+
 game.points+=gain;
+game.totalClicks++;
+
+let float=document.createElement("div");
+float.className="floating";
+float.innerText="+"+gain;
+float.style.left=e.offsetX+"px";
+float.style.top=e.offsetY+"px";
+clickArea.appendChild(float);
+setTimeout(()=>float.remove(),1000);
+
 checkAchievements();
 updateUI();
 });
@@ -193,16 +236,6 @@ setInterval(()=>{
 game.points+=game.passive;
 updateUI();
 },1000);
-
-function showCrit(e){
-let c=document.createElement("div");
-c.className="crit";
-c.innerText="CRIT!";
-c.style.left=e.offsetX+"px";
-c.style.top=e.offsetY+"px";
-clickArea.appendChild(c);
-setTimeout(()=>c.remove(),1000);
-}
 
 function buyClick(){
 if(game.points>=game.clickCost){
@@ -229,7 +262,8 @@ game.critCost=Math.floor(game.critCost*1.8);
 }
 
 function prestige(){
-if(game.points>=getPrestigeCost()){
+let cost=5000*(game.prestigeLevel+1);
+if(game.points>=cost){
 game.points=0;
 game.clickValue=1;
 game.passive=0;
@@ -242,25 +276,18 @@ notify("Prestiged to "+tiers[getTier()]);
 }
 }
 
-function toggleWardrobe(){
-let panel=document.getElementById("wardrobePanel");
-panel.style.display=panel.style.display==="none"?"block":"none";
-}
-
 function renderWardrobe(){
 let list=document.getElementById("wardrobeList");
 list.innerHTML="";
-let prices=[0,1000,2500,5000];
 for(let i=0;i<forms.length;i++){
 let div=document.createElement("div");
-div.className="wardrobe-item";
-div.innerText=forms[i]+" ("+prices[i]+")";
-if(!game.ownedForms.includes(i)) div.classList.add("locked");
+div.innerText=forms[i]+" ("+wardrobePrices[i]+")";
+if(!game.ownedForms.includes(i)) div.className="locked";
 div.onclick=function(){
 if(game.ownedForms.includes(i)){
 game.form=i;
-}else if(game.points>=prices[i]){
-game.points-=prices[i];
+}else if(game.points>=wardrobePrices[i]){
+game.points-=wardrobePrices[i];
 game.ownedForms.push(i);
 game.form=i;
 }
@@ -271,25 +298,48 @@ list.appendChild(div);
 clickArea.innerText=emojis[game.form];
 }
 
+function toggleAchievements(){
+let page=document.getElementById("achievementsPage");
+page.style.display=page.style.display==="none"?"block":"none";
+}
+
 function renderAchievements(){
 let achDiv=document.getElementById("achievements");
 achDiv.innerHTML="";
+
 let achList=[
 ["Thanks for Playing!",true],
-["1000 Points",game.points>=1000],
-["Own Cool Eggy",game.ownedForms.includes(1)],
-["Own Top Hat Eggy",game.ownedForms.includes(2)],
-["Own Crown Eggy",game.ownedForms.includes(3)]
+["Click 10 times",game.totalClicks>=10],
+["Click 100 times",game.totalClicks>=100],
+["Click 1000 times",game.totalClicks>=1000],
+["Reach 1k Points",game.points>=1000],
+["Reach 10k Points",game.points>=10000],
+["Reach 100k Points",game.points>=100000],
+["Buy Cool Eggy",game.ownedForms.includes(1)],
+["Buy Top Hat Eggy",game.ownedForms.includes(2)],
+["Buy Crown Eggy",game.ownedForms.includes(3)],
+["First Prestige",game.prestigeLevel>=1],
+["Bronze Tier",getTier()>=1],
+["Silver Tier",getTier()>=2],
+["Gold Tier",getTier()>=3],
+["Diamond Tier",getTier()>=4],
+["5% Crit Chance",game.critChance>=0.05],
+["25% Crit Chance",game.critChance>=0.25],
+["50% Crit Chance",game.critChance>=0.5],
+["10 Auto Income",game.passive>=10],
+["100 Click Power",game.clickValue>=100],
+["Millionaire",game.points>=1000000]
 ];
+
 achList.forEach((a,i)=>{
-let d=document.createElement("div");
-d.innerText=a[0];
-if(!a[1]) d.className="locked";
+let div=document.createElement("div");
+div.innerText=a[0];
+if(!a[1]) div.className="locked";
 if(a[1] && !game.achievements.includes(i)){
 game.achievements.push(i);
 notify(a[0]);
 }
-achDiv.appendChild(d);
+achDiv.appendChild(div);
 });
 }
 
@@ -300,12 +350,11 @@ n.style.top="20px";
 setTimeout(()=>{n.style.top="-80px";},2500);
 }
 
-function checkAchievements(){
-}
+function checkAchievements(){}
 
-function deleteSave(){
+function resetGame(){
 if(confirm("Reset everything?")){
-localStorage.removeItem(saveKey);
+localStorage.removeItem("eggySaveV4");
 location.reload();
 }
 }
