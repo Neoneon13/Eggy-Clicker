@@ -3,119 +3,85 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Eggy Clicker Royal</title>
+<title>Eggy Clicker Ultimate</title>
 
 <style>
-body {
-    margin: 0;
-    background: #fdf6f0;
-    font-family: Arial, sans-serif;
-    text-align: center;
+body{
+margin:0;
+font-family:Arial;
+background:#fdf6f0;
+text-align:center;
+overflow-x:hidden;
 }
 
-h1 { margin-top: 10px; }
+h1{margin-top:10px;}
 
-#points, #prestigeInfo {
-    font-size: 18px;
-    margin: 5px;
+.panel{
+background:white;
+margin:10px auto;
+padding:10px;
+border-radius:10px;
+width:90%;
+max-width:420px;
+box-shadow:0 0 10px rgba(0,0,0,0.1);
 }
 
-#mainContainer {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
+button{
+width:100%;
+padding:8px;
+margin-top:6px;
 }
 
-#clickArea {
-    font-size: 120px;
-    cursor: pointer;
-    animation: bounce 1.2s infinite ease-in-out;
-    transition: transform 0.1s;
+#clickArea{
+font-size:110px;
+cursor:pointer;
+animation:bounce 1.2s infinite ease-in-out;
 }
 
-#clickArea img {
-    width: 70vw;
-    max-width: 400px;
+#clickArea img{
+width:70vw;
+max-width:350px;
 }
 
-#clickArea:active {
-    transform: scale(1.1);
+@keyframes bounce{
+0%,100%{transform:translateY(0)}
+50%{transform:translateY(-10px)}
 }
 
-@keyframes bounce {
-    0%,100%{transform:translateY(0)}
-    50%{transform:translateY(-10px)}
+.locked{
+filter:grayscale(100%);
+opacity:0.5;
 }
 
-.panel {
-    background: white;
-    margin: 10px;
-    padding: 10px;
-    border-radius: 10px;
-    width: 90%;
-    max-width: 400px;
-    box-shadow: 0 0 10px rgba(0,0,0,0.1);
+.notification{
+position:fixed;
+top:-50px;
+left:50%;
+transform:translateX(-50%);
+background:gold;
+padding:10px 20px;
+border-radius:10px;
+transition:top 0.5s;
 }
 
-button {
-    width: 100%;
-    padding: 8px;
-    margin-top: 6px;
-    font-size: 14px;
-}
-
-.achievement {
-    font-size: 14px;
-    padding: 4px;
-}
-
-.locked {
-    filter: grayscale(100%);
-    opacity: 0.5;
-}
-
-.floating {
-    position: absolute;
-    font-weight: bold;
-    color: orange;
-    pointer-events: none;
-    animation: floatUp 1s forwards;
-}
-
-@keyframes floatUp {
-    from{opacity:1; transform:translateY(0)}
-    to{opacity:0; transform:translateY(-40px)}
-}
 </style>
 </head>
 <body>
 
-<h1>🥚 Eggy Clicker </h1>
-<div id="points">Yolk Points: 0</div>
-<div id="prestigeInfo">Prestige Cost: 5000</div>
-
-<div id="mainContainer">
+<h1>🥚 Eggy Clicker Ultimate</h1>
+<div id="eggName"></div>
+<div id="points"></div>
+<div id="prestigeTier"></div>
 
 <div id="clickArea">🥚</div>
-
-<div class="panel">
-<h3>⬆ Upgrade Eggy</h3>
-<button onclick="upgradeEggy()" id="upgradeBtn"></button>
-</div>
 
 <div class="panel">
 <h3>🛒 Shop</h3>
 <button onclick="buyClick()" id="clickBtn"></button>
 <button onclick="buyAuto()" id="autoBtn"></button>
-<button onclick="buyBackground()">Buy New Background (100)</button>
-<button onclick="toggleMode()">Toggle Emoji / Image</button>
+<button onclick="buyCrit()" id="critBtn"></button>
+<button onclick="openWardrobe()">👕 Wardrobe</button>
 <button onclick="prestige()">🔥 Prestige</button>
-</div>
-
-<div class="panel">
-<h3>👾 Boss Battle</h3>
-<button onclick="fightBoss()">Fight Boss (Cost 2000)</button>
-<div id="bossStatus"></div>
 </div>
 
 <div class="panel">
@@ -123,72 +89,74 @@ button {
 <div id="achievements"></div>
 </div>
 
+<div class="panel">
+<h3>💾 Save</h3>
+<button onclick="exportSave()">Export Save Code</button>
+<button onclick="importSave()">Import Save Code</button>
+<button onclick="deleteSave()">Delete Save</button>
 </div>
 
+<div id="notification" class="notification"></div>
+
+<audio id="music" loop>
+<source src="https://cdn.pixabay.com/audio/2022/03/15/audio_c8e59a0d0c.mp3">
+</audio>
+
 <script>
+
 let points=0;
 let clickValue=1;
 let passive=0;
-let form=0;
+let critChance=0;
 let prestigeLevel=0;
-let prestigeCost=5000;
-let prestigeBonus=1;
-let mode="emoji";
+let prestigeTier=0;
+let clickCost=50;
+let autoCost=200;
+let critCost=300;
+let form=0;
+let ownedForms=[0];
+let achievementsUnlocked=[];
 
-let clickCost=25;
-let autoCost=150;
-
-const forms=["normal","cool","tophat","royal"];
+const tiers=["None","Bronze","Silver","Gold","Diamond"];
+const forms=["Normal","Cool","Top Hat","Crown"];
+const emojis=["🥚","😎🥚","🎩🥚","👑🥚"];
 
 const clickArea=document.getElementById("clickArea");
 const pointsDisplay=document.getElementById("points");
-const prestigeInfo=document.getElementById("prestigeInfo");
-const achievementsDiv=document.getElementById("achievements");
+const eggName=document.getElementById("eggName");
+const prestigeDisplay=document.getElementById("prestigeTier");
+const achDiv=document.getElementById("achievements");
+
+document.getElementById("music").volume=0.3;
+document.body.addEventListener("click",()=>{document.getElementById("music").play();},{once:true});
 
 function updateUI(){
 pointsDisplay.innerText="Yolk Points: "+Math.floor(points);
-prestigeInfo.innerText="Prestige Cost: "+prestigeCost;
+eggName.innerText="Current Egg: "+tiers[prestigeTier]+" "+forms[form];
+prestigeDisplay.innerText="Prestige Tier: "+tiers[prestigeTier]+" (Cost "+(5000*(prestigeLevel+1))+")";
 clickBtn.innerText="+1 Click ("+clickCost+")";
 autoBtn.innerText="+1 Auto/sec ("+autoCost+")";
-upgradeBtn.innerText="Upgrade Form ("+(form<3?(form+1)*1000:"MAX")+")";
-renderEgg();
+critBtn.innerText="Upgrade Critical Chance ("+critCost+")";
 renderAchievements();
 }
 
-function renderEgg(){
-if(mode==="emoji"){
-let emojis=["🥚","😎🥚","🎩🥚","👑🥚"];
-clickArea.innerHTML=emojis[form];
-}else{
-clickArea.innerHTML="<img src='"+forms[form]+".png'>";
+clickArea.addEventListener("click",function(){
+let gain=clickValue;
+if(Math.random()<critChance){
+gain*=5;
 }
-}
-
-clickArea.addEventListener("click",function(e){
-let gain=clickValue*prestigeBonus;
 points+=gain;
-
-let float=document.createElement("div");
-float.className="floating";
-float.innerText="+"+Math.floor(gain);
-float.style.left=e.pageX+"px";
-float.style.top=e.pageY+"px";
-document.body.appendChild(float);
-setTimeout(()=>float.remove(),1000);
-
+checkAchievements();
 updateUI();
 });
 
-setInterval(()=>{
-points+=passive*prestigeBonus;
-updateUI();
-},1000);
+setInterval(()=>{points+=passive;updateUI();},1000);
 
 function buyClick(){
 if(points>=clickCost){
 points-=clickCost;
 clickValue++;
-clickCost=Math.floor(clickCost*1.75);
+clickCost=Math.floor(clickCost*1.5);
 updateUI();
 }
 }
@@ -197,81 +165,103 @@ function buyAuto(){
 if(points>=autoCost){
 points-=autoCost;
 passive++;
-autoCost=Math.floor(autoCost*1.3);
+autoCost=Math.floor(autoCost*1.6);
 updateUI();
 }
 }
 
-function upgradeEggy(){
-let cost=(form+1)*1000;
-if(form<3 && points>=cost){
-points-=cost;
-form++;
-clickValue+=2;
-passive+=1;
+function buyCrit(){
+if(points>=critCost){
+points-=critCost;
+critChance+=0.05;
+critCost=Math.floor(critCost*1.8);
 updateUI();
+}
+}
+
+function openWardrobe(){
+let choice=prompt("Buy: 1 Cool (1000), 2 Top Hat (2500), 3 Crown (5000)");
+let prices=[1000,2500,5000];
+if(choice>=1 && choice<=3){
+let index=parseInt(choice);
+if(points>=prices[index-1]){
+points-=prices[index-1];
+if(!ownedForms.includes(index)) ownedForms.push(index);
+form=index;
+updateUI();
+}
 }
 }
 
 function prestige(){
-if(points>=prestigeCost){
+let cost=5000*(prestigeLevel+1);
+if(points>=cost){
 points=0;
 clickValue=1;
 passive=0;
-form=0;
+critChance=0;
+clickCost=50;
+autoCost=200;
+critCost=300;
 prestigeLevel++;
-prestigeBonus=1+(prestigeLevel*0.5);
-prestigeCost=Math.floor(prestigeCost*2);
+prestigeTier=Math.min(Math.floor(prestigeLevel/2)+1,4);
 updateUI();
 }
-}
-
-function fightBoss(){
-if(points>=2000){
-points-=2000;
-if(Math.random()>0.5){
-points+=5000*prestigeBonus;
-document.getElementById("bossStatus").innerText="You defeated the Boss! +5000!";
-}else{
-document.getElementById("bossStatus").innerText="Boss defeated you!";
-}
-updateUI();
-}
-}
-
-function buyBackground(){
-if(points>=100){
-points-=100;
-document.body.style.background=
-"#"+Math.floor(Math.random()*16777215).toString(16);
-updateUI();
-}
-}
-
-function toggleMode(){
-mode=mode==="emoji"?"image":"emoji";
-updateUI();
 }
 
 function renderAchievements(){
-achievementsDiv.innerHTML="";
-
-let ach=[
-{txt:"Reach 1000 Points",earned:points>=1000},
-{txt:"Upgrade to Cool Eggy",earned:form>=1},
-{txt:"First Prestige",earned:prestigeLevel>=1}
+achDiv.innerHTML="";
+let list=[
+["Thanks for Playing!",true],
+["Reach 1000 Points",points>=1000],
+["Unlock Cool Eggy",ownedForms.includes(1)],
+["Unlock Top Hat Eggy",ownedForms.includes(2)],
+["Unlock Crown Eggy",ownedForms.includes(3)]
 ];
-
-ach.forEach(a=>{
+list.forEach((a,i)=>{
 let div=document.createElement("div");
-div.className="achievement"+(a.earned?"":" locked");
-div.innerText=a.txt;
-achievementsDiv.appendChild(div);
+div.innerText=a[0];
+if(!a[1]) div.className="locked";
+if(a[1] && !achievementsUnlocked.includes(i)){
+achievementsUnlocked.push(i);
+notify(a[0]);
+}
+achDiv.appendChild(div);
 });
 }
 
-updateUI();
-</script>
+function notify(text){
+let n=document.getElementById("notification");
+n.innerText="Achievement Unlocked: "+text;
+n.style.top="20px";
+setTimeout(()=>{n.style.top="-50px";},3000);
+}
 
+function exportSave(){
+let data=btoa(JSON.stringify({
+points,clickValue,passive,critChance,prestigeLevel,
+prestigeTier,ownedForms,achievementsUnlocked
+}));
+prompt("Copy your save code:",data);
+}
+
+function importSave(){
+let code=prompt("Paste save code:");
+if(code){
+let data=JSON.parse(atob(code));
+Object.assign(window,data);
+updateUI();
+}
+}
+
+function deleteSave(){
+if(confirm("Delete all data?")){
+location.reload();
+}
+}
+
+updateUI();
+
+</script>
 </body>
 </html>
