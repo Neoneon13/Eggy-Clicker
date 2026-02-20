@@ -135,8 +135,8 @@ let prestigeCost=5000;
 let prestigeBonus=1;
 let mode="emoji";
 
-let clickCost=50;
-let autoCost=200;
+let clickCost=25;
+let autoCost=150;
 
 const forms=["normal","cool","tophat","royal"];
 
@@ -197,7 +197,7 @@ function buyAuto(){
 if(points>=autoCost){
 points-=autoCost;
 passive++;
-autoCost=Math.floor(autoCost*1.1);
+autoCost=Math.floor(autoCost*1.3);
 updateUI();
 }
 }
