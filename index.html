@@ -2,60 +2,58 @@
 <html>
 <head>
 <meta charset="UTF-8">
-<title>Eggy Clicker Ultra</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Eggy Clicker Royal</title>
 
 <style>
 body {
     margin: 0;
-    height: 100vh;
     background: #fdf6f0;
+    font-family: Arial, sans-serif;
+    text-align: center;
+}
+
+h1 { margin-top: 10px; }
+
+#points, #prestigeInfo {
+    font-size: 18px;
+    margin: 5px;
+}
+
+#mainContainer {
     display: flex;
     flex-direction: column;
     align-items: center;
-    font-family: Arial, sans-serif;
-}
-
-h1 { margin-top: 20px; }
-
-#points {
-    font-size: 26px;
-}
-
-#game {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    width: 100%;
 }
 
 #clickArea {
-    font-size: 180px;
+    font-size: 120px;
     cursor: pointer;
-    user-select: none;
     animation: bounce 1.2s infinite ease-in-out;
     transition: transform 0.1s;
 }
 
 #clickArea img {
-    width: 550px;
-    max-width: 80vw;
+    width: 70vw;
+    max-width: 400px;
 }
 
 #clickArea:active {
-    transform: scale(1.15);
+    transform: scale(1.1);
 }
 
 @keyframes bounce {
-    0%, 100% { transform: translateY(0); }
-    50% { transform: translateY(-15px); }
+    0%,100%{transform:translateY(0)}
+    50%{transform:translateY(-10px)}
 }
 
-#shop, #achievements {
-    margin-left: 30px;
+.panel {
     background: white;
-    padding: 15px;
+    margin: 10px;
+    padding: 10px;
     border-radius: 10px;
-    width: 260px;
+    width: 90%;
+    max-width: 400px;
     box-shadow: 0 0 10px rgba(0,0,0,0.1);
 }
 
@@ -63,12 +61,17 @@ button {
     width: 100%;
     padding: 8px;
     margin-top: 6px;
-    cursor: pointer;
+    font-size: 14px;
 }
 
 .achievement {
     font-size: 14px;
-    margin-top: 5px;
+    padding: 4px;
+}
+
+.locked {
+    filter: grayscale(100%);
+    opacity: 0.5;
 }
 
 .floating {
@@ -76,174 +79,197 @@ button {
     font-weight: bold;
     color: orange;
     pointer-events: none;
-    animation: floatUp 1s ease-out forwards;
+    animation: floatUp 1s forwards;
 }
 
 @keyframes floatUp {
-    from { opacity: 1; transform: translateY(0); }
-    to { opacity: 0; transform: translateY(-40px); }
+    from{opacity:1; transform:translateY(0)}
+    to{opacity:0; transform:translateY(-40px)}
 }
 </style>
 </head>
 <body>
 
-<h1>🥚 Eggy Clicker ULTRA</h1>
+<h1>🥚 Eggy Clicker Royal</h1>
 <div id="points">Yolk Points: 0</div>
-<div id="prestigeDisplay">Prestige Bonus: x1</div>
+<div id="prestigeInfo">Prestige Cost: 5000</div>
 
-<div id="game">
+<div id="mainContainer">
 
 <div id="clickArea">🥚</div>
 
-<div id="shop">
-<h3>🛒 Shop</h3>
-<button onclick="buyClick()" id="clickBtn"></button>
-<button onclick="buyMulti()" id="multiBtn"></button>
-<button onclick="buyAuto()" id="autoBtn"></button>
-
-<hr>
-
-<button onclick="toggleMode()">Toggle Image / Emoji</button>
-<button onclick="prestige()">🔥 Prestige (Reset for Bonus)</button>
+<div class="panel">
+<h3>⬆ Upgrade Eggy</h3>
+<button onclick="upgradeEggy()" id="upgradeBtn"></button>
 </div>
 
-<div id="achievements">
+<div class="panel">
+<h3>🛒 Shop</h3>
+<button onclick="buyClick()" id="clickBtn"></button>
+<button onclick="buyAuto()" id="autoBtn"></button>
+<button onclick="buyBackground()">Buy New Background (1000)</button>
+<button onclick="toggleMode()">Toggle Emoji / Image</button>
+<button onclick="prestige()">🔥 Prestige</button>
+</div>
+
+<div class="panel">
+<h3>👾 Boss Battle</h3>
+<button onclick="fightBoss()">Fight Boss (Cost 2000)</button>
+<div id="bossStatus"></div>
+</div>
+
+<div class="panel">
 <h3>🏆 Achievements</h3>
-<div id="achList"></div>
+<div id="achievements"></div>
 </div>
 
 </div>
 
 <script>
-let points = 0;
-let totalClicks = 0;
-let clickValue = 1;
-let multiplier = 1;
-let passiveIncome = 0;
-let prestigeLevel = 0;
-let prestigeBonus = 1;
-let mode = "emoji";
+let points=0;
+let clickValue=1;
+let passive=0;
+let form=0;
+let prestigeLevel=0;
+let prestigeCost=5000;
+let prestigeBonus=1;
+let mode="emoji";
 
-let clickCost = 50;
-let multiCost = 200;
-let autoCost = 300;
+let clickCost=50;
+let autoCost=200;
 
-let clickTimes = [];
+const forms=["normal","cool","tophat","royal"];
 
-const clickArea = document.getElementById("clickArea");
-const pointsDisplay = document.getElementById("points");
-const prestigeDisplay = document.getElementById("prestigeDisplay");
-const achList = document.getElementById("achList");
+const clickArea=document.getElementById("clickArea");
+const pointsDisplay=document.getElementById("points");
+const prestigeInfo=document.getElementById("prestigeInfo");
+const achievementsDiv=document.getElementById("achievements");
 
-function updateButtons() {
-    clickBtn.innerText = "+1 Click (" + clickCost + ")";
-    multiBtn.innerText = "x2 Multiplier (" + multiCost + ")";
-    autoBtn.innerText = "+1 Auto/sec (" + autoCost + ")";
+function updateUI(){
+pointsDisplay.innerText="Yolk Points: "+Math.floor(points);
+prestigeInfo.innerText="Prestige Cost: "+prestigeCost;
+clickBtn.innerText="+1 Click ("+clickCost+")";
+autoBtn.innerText="+1 Auto/sec ("+autoCost+")";
+upgradeBtn.innerText="Upgrade Form ("+(form<3?(form+1)*1000:"MAX")+")";
+renderEgg();
+renderAchievements();
 }
 
-function updateUI() {
-    pointsDisplay.innerText = "Yolk Points: " + Math.floor(points);
-    prestigeDisplay.innerText = "Prestige Bonus: x" + prestigeBonus;
-    updateButtons();
-    checkAchievements();
+function renderEgg(){
+if(mode==="emoji"){
+let emojis=["🥚","😎🥚","🎩🥚","👑🥚"];
+clickArea.innerHTML=emojis[form];
+}else{
+clickArea.innerHTML="<img src='"+forms[form]+".png'>";
+}
 }
 
-function renderEgg() {
-    if (mode === "emoji") {
-        clickArea.innerHTML = "🥚";
-    } else {
-        clickArea.innerHTML = "<img src='normal.png'>";
-    }
-}
+clickArea.addEventListener("click",function(e){
+let gain=clickValue*prestigeBonus;
+points+=gain;
 
-clickArea.addEventListener("click", function(e) {
-    let now = Date.now();
-    clickTimes.push(now);
-    clickTimes = clickTimes.filter(t => now - t < 1000);
+let float=document.createElement("div");
+float.className="floating";
+float.innerText="+"+Math.floor(gain);
+float.style.left=e.pageX+"px";
+float.style.top=e.pageY+"px";
+document.body.appendChild(float);
+setTimeout(()=>float.remove(),1000);
 
-    if (clickTimes.length >= 10) {
-        points += 100 * prestigeBonus;
-        clickTimes = [];
-    }
-
-    let gain = clickValue * multiplier * prestigeBonus;
-    points += gain;
-    totalClicks++;
-
-    let float = document.createElement("div");
-    float.className = "floating";
-    float.innerText = "+" + Math.floor(gain);
-    float.style.left = e.pageX + "px";
-    float.style.top = e.pageY + "px";
-    document.body.appendChild(float);
-    setTimeout(() => float.remove(), 1000);
-
-    updateUI();
+updateUI();
 });
 
-setInterval(function() {
-    points += passiveIncome * prestigeBonus;
-    updateUI();
-}, 1000);
+setInterval(()=>{
+points+=passive*prestigeBonus;
+updateUI();
+},1000);
 
-function buyClick() {
-    if (points >= clickCost) {
-        points -= clickCost;
-        clickValue++;
-        clickCost = Math.floor(clickCost * 1.5);
-        updateUI();
-    }
+function buyClick(){
+if(points>=clickCost){
+points-=clickCost;
+clickValue++;
+clickCost=Math.floor(clickCost*1.5);
+updateUI();
+}
 }
 
-function buyMulti() {
-    if (points >= multiCost) {
-        points -= multiCost;
-        multiplier *= 2;
-        multiCost = Math.floor(multiCost * 2);
-        updateUI();
-    }
+function buyAuto(){
+if(points>=autoCost){
+points-=autoCost;
+passive++;
+autoCost=Math.floor(autoCost*1.6);
+updateUI();
+}
 }
 
-function buyAuto() {
-    if (points >= autoCost) {
-        points -= autoCost;
-        passiveIncome++;
-        autoCost = Math.floor(autoCost * 1.7);
-        updateUI();
-    }
+function upgradeEggy(){
+let cost=(form+1)*1000;
+if(form<3 && points>=cost){
+points-=cost;
+form++;
+clickValue+=2;
+passive+=1;
+updateUI();
+}
 }
 
-function prestige() {
-    if (points >= 5000) {
-        prestigeLevel++;
-        prestigeBonus = 1 + (prestigeLevel * 0.5);
-        points = 0;
-        clickValue = 1;
-        multiplier = 1;
-        passiveIncome = 0;
-        clickCost = 50;
-        multiCost = 200;
-        autoCost = 300;
-        updateUI();
-    }
+function prestige(){
+if(points>=prestigeCost){
+points=0;
+clickValue=1;
+passive=0;
+form=0;
+prestigeLevel++;
+prestigeBonus=1+(prestigeLevel*0.5);
+prestigeCost=Math.floor(prestigeCost*2);
+updateUI();
+}
 }
 
-function toggleMode() {
-    mode = mode === "emoji" ? "image" : "emoji";
-    renderEgg();
+function fightBoss(){
+if(points>=2000){
+points-=2000;
+if(Math.random()>0.5){
+points+=5000*prestigeBonus;
+document.getElementById("bossStatus").innerText="You defeated the Boss! +5000!";
+}else{
+document.getElementById("bossStatus").innerText="Boss defeated you!";
+}
+updateUI();
+}
 }
 
-function checkAchievements() {
-    achList.innerHTML = "";
-    if (totalClicks >= 100)
-        achList.innerHTML += "<div class='achievement'>✔ 100 Clicks!</div>";
-    if (points >= 1000)
-        achList.innerHTML += "<div class='achievement'>✔ 1000 Points!</div>";
-    if (prestigeLevel >= 1)
-        achList.innerHTML += "<div class='achievement'>✔ First Prestige!</div>";
+function buyBackground(){
+if(points>=1000){
+points-=1000;
+document.body.style.background=
+"#"+Math.floor(Math.random()*16777215).toString(16);
+updateUI();
+}
 }
 
-renderEgg();
+function toggleMode(){
+mode=mode==="emoji"?"image":"emoji";
+updateUI();
+}
+
+function renderAchievements(){
+achievementsDiv.innerHTML="";
+
+let ach=[
+{txt:"Reach 1000 Points",earned:points>=1000},
+{txt:"Upgrade to Cool Eggy",earned:form>=1},
+{txt:"First Prestige",earned:prestigeLevel>=1}
+];
+
+ach.forEach(a=>{
+let div=document.createElement("div");
+div.className="achievement"+(a.earned?"":" locked");
+div.innerText=a.txt;
+achievementsDiv.appendChild(div);
+});
+}
+
 updateUI();
 </script>
 
