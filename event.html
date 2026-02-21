@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Eggy Event</title>
+<style>
+body{text-align:center;font-family:Arial;background:#fff5e6;}
+.panel{margin:20px auto;padding:20px;max-width:500px;box-shadow:0 0 10px rgba(0,0,0,.2);}
+button{padding:10px;width:100%;margin-top:10px;}
+</style>
+</head>
+<body>
+
+<div class="panel">
+<h1>🔥 Limited Event 🔥</h1>
+<p>Click 200 times in this event to unlock the Fire Egg skin!</p>
+<h3 id="progress">0 / 200</h3>
+<button onclick="eventClick()">Click Event Egg</button>
+<button onclick="goBack()">Back To Game</button>
+</div>
+
+<script>
+
+let save = JSON.parse(localStorage.getItem("eggySave"));
+let eventClicks = 0;
+
+function eventClick(){
+  eventClicks++;
+  progress.innerText=eventClicks+" / 200";
+
+  if(eventClicks>=200){
+    unlockSkin();
+  }
+}
+
+function unlockSkin(){
+  if(!save.ownedSkins.includes("event-fire")){
+    save.ownedSkins.push("event-fire");
+    localStorage.setItem("eggySave",JSON.stringify(save));
+    alert("🔥 Fire Egg Unlocked Permanently!");
+  }
+}
+
+function goBack(){
+  window.location.href="index.html";
+}
+
+</script>
+</body>
+</html>
