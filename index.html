@@ -6,69 +6,108 @@
 <title>Eggy Clicker</title>
 
 <style>
-body{margin:0;font-family:Arial;background:#fdf6f0;text-align:center;transition:.3s}
-h1,h2,h3{margin:8px}
-.panel{margin:10px auto;padding:12px;border-radius:12px;width:95%;max-width:480px;box-shadow:0 0 15px rgba(0,0,0,.15)}
-button{width:100%;padding:10px;margin-top:6px;border:none;border-radius:8px;font-weight:bold;cursor:pointer}
-button:active{transform:scale(.98)}
-#gameScreen{display:none}
-#clickWrapper{position:relative;display:inline-block}
-#clickArea{font-size:120px;cursor:pointer;animation:bounce 1.2s infinite ease-in-out;user-select:none}
-@keyframes bounce{0%,100%{transform:translateY(0)}50%{transform:translateY(-12px)}}
-.floating{position:absolute;color:orange;font-weight:bold;pointer-events:none;animation:floatUp 1s forwards}
-@keyframes floatUp{0%{opacity:1}100%{opacity:0;transform:translateY(-40px)}}
-.notification{position:fixed;top:10px;left:50%;transform:translateX(-50%);background:gold;padding:10px 20px;border-radius:10px;font-weight:bold;z-index:999;opacity:0;transition:.3s}
-.locked{opacity:.4;filter:grayscale(100%)}
-#wardrobeBtn{background:red;color:white}
-#saveBtn{background:green;color:white}
-#topControls button{background:#444;color:white}
+body{
+  margin:0;
+  font-family:Arial;
+  background:#fdf6f0;
+  text-align:center;
+}
+.panel{
+  margin:10px auto;
+  padding:12px;
+  border-radius:12px;
+  width:95%;
+  max-width:500px;
+  box-shadow:0 0 10px rgba(0,0,0,0.15);
+}
+button{
+  width:100%;
+  padding:10px;
+  margin-top:6px;
+  border:none;
+  border-radius:8px;
+  font-weight:bold;
+  cursor:pointer;
+}
+button:active{transform:scale(.98);}
+#wardrobeBtn{background:red;color:white;}
+#saveBtn{background:green;color:white;}
+#topBar button{background:#333;color:white;}
+#clickArea{
+  font-size:110px;
+  cursor:pointer;
+  user-select:none;
+}
+.floating{
+  position:absolute;
+  pointer-events:none;
+  font-weight:bold;
+  color:orange;
+  animation:floatUp 1s forwards;
+}
+@keyframes floatUp{
+  0%{opacity:1;}
+  100%{opacity:0;transform:translateY(-40px);}
+}
+.notification{
+  position:fixed;
+  top:10px;
+  left:50%;
+  transform:translateX(-50%);
+  background:gold;
+  padding:10px 20px;
+  border-radius:10px;
+  opacity:0;
+  transition:.3s;
+  z-index:1000;
+}
+.locked{
+  opacity:.4;
+  pointer-events:none;
+}
 </style>
 </head>
 <body>
 
 <div id="homeScreen">
-<h1>🥚 EGGY CLICKER 🥚</h1>
+<h1>🥚 Eggy Clicker 🥚</h1>
 <input id="usernameInput" placeholder="Enter Username">
-<button onclick="startNewGame()">Start Game</button>
+<button onclick="startGame()">Start Game</button>
 <button onclick="loadGame()">Load Save</button>
 </div>
 
-<div id="gameScreen">
+<div id="gameScreen" style="display:none;">
 
-<div id="topControls" class="panel">
-<button onclick="toggleMode()">Toggle Emoji</button>
+<div id="topBar" class="panel">
+<button onclick="toggleEmoji()">Toggle Emoji</button>
 <button onclick="goToEvent()">Event</button>
-<button onclick="activateGodMode()">God Mode</button>
 </div>
 
-<h2 id="usernameDisplay"></h2>
-<h2 id="eggDisplay"></h2>
-<div id="pointsDisplay"></div>
-<div id="cpsDisplay"></div>
+<h2 id="playerName"></h2>
+<h3 id="rankDisplay"></h3>
+<h3 id="pointsDisplay"></h3>
+<h3 id="cpsDisplay"></h3>
 
-<div id="clickWrapper">
+<div id="clickWrapper" style="position:relative;display:inline-block;">
 <div id="clickArea">🥚</div>
 </div>
 
 <div class="panel">
 <button id="wardrobeBtn" onclick="toggleWardrobe()">Wardrobe</button>
-</div>
-
-<div id="wardrobePanel" class="panel" style="display:none">
-<h3>Wardrobe</h3>
-<div id="wardrobeList"></div>
+<div id="wardrobePanel" style="display:none;"></div>
 </div>
 
 <div class="panel">
 <h3>Shop</h3>
-<button id="clickBtn" onclick="buyClick()"></button>
-<button id="autoBtn" onclick="buyAuto()"></button>
-<button id="critBtn" onclick="buyCrit()"></button>
+<button onclick="buyClick()" id="clickUpgrade"></button>
+<button onclick="buyAuto()" id="autoUpgrade"></button>
+<button onclick="buyCrit()" id="critUpgrade"></button>
+<button onclick="buyBackground()">Change Background (100)</button>
 </div>
 
 <div class="panel">
 <h3>Prestige</h3>
-<button id="prestigeBtn" onclick="prestige()"></button>
+<button onclick="prestige()" id="prestigeBtn"></button>
 </div>
 
 <div class="panel">
@@ -89,316 +128,352 @@ button:active{transform:scale(.98)}
 
 <script>
 
-// ================= CORE SYSTEM =================
+/* =========================
+   CORE DATA
+========================= */
 
-let game=null;
-let clickTimes=[];
-let critStreak=0;
-let maxCritStreak=0;
-let useEmoji=true;
+let game = null;
+let clickTimes = [];
+let useEmoji = true;
+let critStreak = 0;
+let maxCritStreak = 0;
 
-const forms=["Normal","Cool","Top Hat","Crown"];
-const emojis=["🥚","😎🥚","🎩🥚","👑🥚"];
+const forms = ["Normal","Cool","Top Hat","Crown"];
+const emojis = ["🥚","😎🥚","🎩🥚","👑🥚"];
 
-// Prestige rank generator
-function getPrestigeName(level){
-const base=["Bronze","Silver","Gold","Diamond","Master"];
-if(level<10){
-let tier=Math.floor(level/2);
-let stage=level%2===0?" I":" II";
-return (tier<4?base[tier]:base[4]) + stage;
-}
-if(level<20){
-return "Master " + (level-9);
-}
-if(level===20)return "Ultimate Master";
-return "Ultimate Master +" + (level-20);
-}
-
-const defaultGame={
-username:"",
-points:0,
-totalClicks:0,
-clickValue:1,
-passive:0,
-critChance:0,
-clickCost:50,
-autoCost:200,
-critCost:300,
-form:0,
-prestigeLevel:0,
-ownedSkins:["0-0"],
-achievements:[],
-lastPlayed:Date.now()
+const defaultData = {
+  username:"",
+  points:0,
+  totalClicks:0,
+  clickValue:1,
+  passive:0,
+  critChance:0,
+  clickCost:50,
+  autoCost:200,
+  critCost:300,
+  prestige:0,
+  form:0,
+  ownedSkins:["0-0"],
+  achievements:[],
+  lastPlayed:Date.now(),
+  background:"#fdf6f0"
 };
 
-// ================= START =================
+/* =========================
+   PRESTIGE SYSTEM
+========================= */
 
-function startNewGame(){
-let name=usernameInput.value.trim();
-if(!name)return alert("Enter Username");
-game=JSON.parse(JSON.stringify(defaultGame));
-game.username=name;
-homeScreen.style.display="none";
-gameScreen.style.display="block";
-updateUI();
+function getRank(level){
+  const tiers=["Bronze","Silver","Gold","Diamond"];
+  if(level < 8){
+    let tier=Math.floor(level/2);
+    let stage=(level%2===0)?" I":" II";
+    return tiers[tier]+stage;
+  }
+  if(level < 18){
+    return "Master "+(level-7);
+  }
+  if(level===18) return "Ultimate Master";
+  return "Ultimate Master +"+(level-18);
+}
+
+/* =========================
+   START / LOAD
+========================= */
+
+function startGame(){
+  const name = usernameInput.value.trim();
+  if(!name)return alert("Enter username");
+  game = JSON.parse(JSON.stringify(defaultData));
+  game.username = name;
+  homeScreen.style.display="none";
+  gameScreen.style.display="block";
+  updateUI();
 }
 
 function loadGame(){
-let data=localStorage.getItem("eggySave");
-if(!data)return alert("No save");
-game=JSON.parse(data);
-homeScreen.style.display="none";
-gameScreen.style.display="block";
-updateUI();
+  const save = localStorage.getItem("eggySave");
+  if(!save)return alert("No save");
+  game = JSON.parse(save);
+
+  let offlineSeconds = Math.min(1800, Math.floor((Date.now()-game.lastPlayed)/1000));
+  game.points += offlineSeconds * game.passive;
+
+  homeScreen.style.display="none";
+  gameScreen.style.display="block";
+  updateUI();
 }
 
-// ================= SAVE =================
+/* =========================
+   SAVE SYSTEM
+========================= */
 
 function manualSave(){
-game.lastPlayed=Date.now();
-localStorage.setItem("eggySave",JSON.stringify(game));
-notify("Saved!");
+  game.lastPlayed = Date.now();
+  localStorage.setItem("eggySave",JSON.stringify(game));
+  notify("Saved!");
 }
 
 function exportSave(){
-navigator.clipboard.writeText(btoa(JSON.stringify(game)));
-notify("Copied!");
+  navigator.clipboard.writeText(btoa(JSON.stringify(game)));
+  notify("Copied!");
 }
 
 function importSave(){
-let code=prompt("Paste Code");
-if(!code)return;
-game=JSON.parse(atob(code));
-updateUI();
-notify("Imported!");
+  const code = prompt("Paste code");
+  if(!code)return;
+  game = JSON.parse(atob(code));
+  updateUI();
 }
 
 function deleteData(){
-if(prompt("Type DELETE")==="DELETE"){
-localStorage.removeItem("eggySave");
-location.reload();
+  if(prompt("Type DELETE to confirm")==="DELETE"){
+    localStorage.removeItem("eggySave");
+    location.reload();
+  }
 }
-}
 
-// ================= CLICK =================
+/* =========================
+   CLICK SYSTEM
+========================= */
 
-clickArea.addEventListener("pointerdown",function(e){
-let gain=game.clickValue;
-let isCrit=false;
+clickArea.addEventListener("pointerdown", function(e){
 
-if(Math.random()<game.critChance){
-gain*=5;
-isCrit=true;
-critStreak++;
-}else critStreak=0;
+  let gain = game.clickValue;
+  let isCrit=false;
 
-maxCritStreak=Math.max(maxCritStreak,critStreak);
+  if(Math.random()<game.critChance){
+    gain*=5;
+    isCrit=true;
+    critStreak++;
+  }else{
+    critStreak=0;
+  }
 
-game.points+=gain;
-game.totalClicks++;
-clickTimes.push(Date.now());
+  maxCritStreak=Math.max(maxCritStreak,critStreak);
 
-spawnNumber(e,gain,isCrit);
-checkAchievements();
-updateUI();
+  game.points+=gain;
+  game.totalClicks++;
+  clickTimes.push(Date.now());
+
+  spawnFloat(e,gain,isCrit);
+  checkAchievements();
+  updateUI();
 });
 
-function spawnNumber(e,gain,isCrit){
-let div=document.createElement("div");
-div.className="floating";
-div.innerText=(isCrit?"CRIT! +":"+")+gain;
-let rect=clickWrapper.getBoundingClientRect();
-div.style.left=(e.clientX-rect.left)+"px";
-div.style.top=(e.clientY-rect.top)+"px";
-clickWrapper.appendChild(div);
-setTimeout(()=>div.remove(),1000);
+function spawnFloat(e,gain,isCrit){
+  const div=document.createElement("div");
+  div.className="floating";
+  div.innerText=(isCrit?"CRIT! +":"+")+gain;
+  const rect=clickWrapper.getBoundingClientRect();
+  div.style.left=(e.clientX-rect.left)+"px";
+  div.style.top=(e.clientY-rect.top)+"px";
+  clickWrapper.appendChild(div);
+  setTimeout(()=>div.remove(),1000);
 }
 
-// ================= SHOP =================
+/* =========================
+   SHOP
+========================= */
 
 function buyClick(){
-if(game.points<game.clickCost)return;
-game.points-=game.clickCost;
-game.clickValue++;
-game.clickCost=Math.floor(game.clickCost*1.4);
+  if(game.points<game.clickCost)return;
+  game.points-=game.clickCost;
+  game.clickValue++;
+  game.clickCost=Math.floor(game.clickCost*1.4);
 }
 
 function buyAuto(){
-if(game.points<game.autoCost)return;
-game.points-=game.autoCost;
-game.passive++;
-game.autoCost=Math.floor(game.autoCost*1.6);
+  if(game.points<game.autoCost)return;
+  game.points-=game.autoCost;
+  game.passive++;
+  game.autoCost=Math.floor(game.autoCost*1.6);
 }
 
 function buyCrit(){
-if(game.points<game.critCost)return;
-game.points-=game.critCost;
-game.critChance+=.05;
-game.critCost=Math.floor(game.critCost*1.8);
+  if(game.points<game.critCost)return;
+  game.points-=game.critCost;
+  game.critChance+=.05;
+  game.critCost=Math.floor(game.critCost*1.8);
 }
 
-// ================= PRESTIGE =================
+function buyBackground(){
+  if(game.points<100)return;
+  game.points-=100;
+  game.background = (game.background==="#fdf6f0")?"#e0f7ff":"#fdf6f0";
+  document.body.style.background=game.background;
+}
+
+/* =========================
+   PRESTIGE
+========================= */
 
 function prestige(){
-let cost=5000*(game.prestigeLevel+1);
-if(game.points<cost)return;
+  const cost = 5000*(game.prestige+1);
+  if(game.points<cost)return;
 
-game.points=0;
-game.clickValue=1;
-game.passive=0;
-game.critChance=0;
-game.prestigeLevel++;
+  game.points=0;
+  game.clickValue=1;
+  game.passive=0;
+  game.critChance=0;
+  game.clickCost=50;
+  game.autoCost=200;
+  game.critCost=300;
+  game.prestige++;
 
-notify("Now "+getPrestigeName(game.prestigeLevel));
+  notify("Now "+getRank(game.prestige));
 }
 
-// ================= WARDROBE =================
+/* =========================
+   WARDROBE
+========================= */
 
 function toggleWardrobe(){
-wardrobePanel.style.display=
-wardrobePanel.style.display==="none"?"block":"none";
-renderWardrobe();
+  wardrobePanel.style.display=
+    wardrobePanel.style.display==="none"?"block":"none";
+  renderWardrobe();
 }
 
 function renderWardrobe(){
-wardrobeList.innerHTML="";
-for(let f=0;f<forms.length;f++){
-let key=game.prestigeLevel+"-"+f;
-let cost=(game.prestigeLevel+1)*(f+1)*500;
+  wardrobePanel.innerHTML="";
+  forms.forEach((form,i)=>{
+    const key=game.prestige+"-"+i;
+    const cost=(game.prestige+1)*(i+1)*400;
 
-let div=document.createElement("div");
-div.innerText=forms[f]+" ("+cost+")";
+    const btn=document.createElement("button");
+    btn.innerText=form+" ("+cost+")";
 
-if(game.prestigeLevel===0 && f>0){
-div.className="locked";
-div.onclick=()=>notify("LOCKED");
-}else{
-div.onclick=function(){
-if(!game.ownedSkins.includes(key)){
-if(game.points<cost)return;
-game.points-=cost;
-game.ownedSkins.push(key);
+    if(!game.ownedSkins.includes(key)){
+      btn.onclick=()=>{
+        if(game.points<cost)return;
+        game.points-=cost;
+        game.ownedSkins.push(key);
+        game.form=i;
+        updateUI();
+      };
+    }else{
+      btn.onclick=()=>{
+        game.form=i;
+        updateUI();
+      };
+    }
+
+    wardrobePanel.appendChild(btn);
+  });
 }
-game.form=f;
-updateUI();
-};
-}
 
-wardrobeList.appendChild(div);
-}
-}
+/* =========================
+   ACHIEVEMENTS
+========================= */
 
-// ================= ACHIEVEMENTS =================
-
-const achievementData=[
+const achievementsData=[
 "100 Clicks","1k Clicks","10k Clicks",
 "Crit 5 Streak","Crit 10 Streak",
-"5 CPS","10 CPS",
-"First Prestige","Bronze II","Silver I","Silver II",
-"Gold I","Gold II","Diamond I","Diamond II",
-"Master I","Master V","Master X",
-"Ultimate Master",
-"Own 4 Skins","Own 8 Skins","Own 12 Skins",
-"Full Bronze Set","Full Silver Set","Full Gold Set","Full Diamond Set",
+"First Prestige","Silver Rank","Gold Rank",
+"Diamond Rank","Master Rank","Ultimate Master",
 "1M Yolk","10M Yolk","100M Yolk"
 ];
 
 function unlockAchievement(i){
-if(!game.achievements.includes(i)){
-game.achievements.push(i);
-notify("Achievement: "+achievementData[i]);
-}
+  if(!game.achievements.includes(i)){
+    game.achievements.push(i);
+    notify("Achievement: "+achievementsData[i]);
+  }
 }
 
 function checkAchievements(){
-if(game.totalClicks>=100)unlockAchievement(0);
-if(game.totalClicks>=1000)unlockAchievement(1);
-if(game.totalClicks>=10000)unlockAchievement(2);
-if(maxCritStreak>=5)unlockAchievement(3);
-if(maxCritStreak>=10)unlockAchievement(4);
-
-let cps=clickTimes.filter(t=>Date.now()-t<1000).length;
-if(cps>=5)unlockAchievement(5);
-if(cps>=10)unlockAchievement(6);
-
-if(game.prestigeLevel>=1)unlockAchievement(7);
-if(game.prestigeLevel>=2)unlockAchievement(8);
-if(game.prestigeLevel>=3)unlockAchievement(9);
-if(game.prestigeLevel>=4)unlockAchievement(10);
-if(game.prestigeLevel>=5)unlockAchievement(11);
-if(game.prestigeLevel>=6)unlockAchievement(12);
-if(game.prestigeLevel>=7)unlockAchievement(13);
-if(game.prestigeLevel>=8)unlockAchievement(14);
-if(game.prestigeLevel>=9)unlockAchievement(15);
-if(game.prestigeLevel>=14)unlockAchievement(16);
-if(game.prestigeLevel>=19)unlockAchievement(17);
-if(game.prestigeLevel>=20)unlockAchievement(18);
-
-if(game.points>=1e6)unlockAchievement(26);
-if(game.points>=1e7)unlockAchievement(27);
-if(game.points>=1e8)unlockAchievement(28);
-}
-
-// ================= UI =================
-
-function updateUI(){
-usernameDisplay.innerText="Player: "+game.username;
-eggDisplay.innerText="Egg "+getPrestigeName(game.prestigeLevel)+" "+forms[game.form];
-pointsDisplay.innerText="Yolk: "+Math.floor(game.points);
-cpsDisplay.innerText="CPS: "+clickTimes.filter(t=>Date.now()-t<1000).length;
-
-clickBtn.innerText="+Click ("+game.clickCost+")";
-autoBtn.innerText="+Auto ("+game.autoCost+")";
-critBtn.innerText="Crit ("+game.critCost+")";
-prestigeBtn.innerText="Prestige Cost: "+(5000*(game.prestigeLevel+1));
-renderAchievements();
-clickArea.innerText=useEmoji?emojis[game.form]:"EGG";
+  if(game.totalClicks>=100)unlockAchievement(0);
+  if(game.totalClicks>=1000)unlockAchievement(1);
+  if(game.totalClicks>=10000)unlockAchievement(2);
+  if(maxCritStreak>=5)unlockAchievement(3);
+  if(maxCritStreak>=10)unlockAchievement(4);
+  if(game.prestige>=1)unlockAchievement(5);
+  if(game.prestige>=2)unlockAchievement(6);
+  if(game.prestige>=4)unlockAchievement(7);
+  if(game.prestige>=6)unlockAchievement(8);
+  if(game.prestige>=8)unlockAchievement(9);
+  if(game.prestige>=18)unlockAchievement(10);
+  if(game.points>=1e6)unlockAchievement(11);
+  if(game.points>=1e7)unlockAchievement(12);
+  if(game.points>=1e8)unlockAchievement(13);
 }
 
 function renderAchievements(){
-achievementsList.innerHTML="";
-achievementData.forEach((a,i)=>{
-let div=document.createElement("div");
-div.innerText=a;
-if(!game.achievements.includes(i))div.className="locked";
-achievementsList.appendChild(div);
-});
+  achievementsList.innerHTML="";
+  achievementsData.forEach((a,i)=>{
+    const div=document.createElement("div");
+    div.innerText=a;
+    if(!game.achievements.includes(i))div.className="locked";
+    achievementsList.appendChild(div);
+  });
 }
 
-// ================= MISC =================
+/* =========================
+   UI UPDATE
+========================= */
 
-function notify(t){
-notification.innerText=t;
-notification.style.opacity=1;
-setTimeout(()=>notification.style.opacity=0,2000);
+function updateUI(){
+  playerName.innerText="Player: "+game.username;
+  rankDisplay.innerText="Rank: "+getRank(game.prestige);
+  pointsDisplay.innerText="Yolk: "+Math.floor(game.points);
+  cpsDisplay.innerText="CPS: "+clickTimes.filter(t=>Date.now()-t<1000).length;
+  clickUpgrade.innerText="+Click ("+game.clickCost+")";
+  autoUpgrade.innerText="+Auto ("+game.autoCost+")";
+  critUpgrade.innerText="Crit ("+game.critCost+")";
+  prestigeBtn.innerText="Prestige Cost: "+(5000*(game.prestige+1));
+  clickArea.innerText=useEmoji?emojis[game.form]:"EGG";
+  document.body.style.background=game.background;
+  renderAchievements();
 }
 
-function toggleMode(){
-useEmoji=!useEmoji;
-updateUI();
-}
+/* =========================
+   EVENT
+========================= */
 
 function goToEvent(){
-alert("Event system coming next.");
+  window.location.href="event.html";
 }
 
-function activateGodMode(){
-game.points=1e9;
-game.clickValue=10000;
-game.passive=1000;
-game.critChance=1;
-game.prestigeLevel=20;
-updateUI();
-notify("GOD MODE ACTIVATED");
+/* =========================
+   HIDDEN GOD MODE
+========================= */
+
+function activateGodMode(code){
+  if(code!=="EGGY-DEV-999")return alert("Invalid");
+  game.points=1e9;
+  game.clickValue=1000;
+  game.passive=100;
+  game.critChance=1;
+  game.prestige=18;
+  updateUI();
+  notify("DEV MODE");
+}
+
+/* =========================
+   MISC
+========================= */
+
+function notify(text){
+  notification.innerText=text;
+  notification.style.opacity=1;
+  setTimeout(()=>notification.style.opacity=0,2000);
+}
+
+function toggleEmoji(){
+  useEmoji=!useEmoji;
+  updateUI();
 }
 
 setInterval(()=>{
-if(game){
-game.points+=game.passive;
-updateUI();
-}
+  if(game){
+    game.points+=game.passive;
+    updateUI();
+  }
 },1000);
+
+setInterval(()=>{
+  if(game)manualSave();
+},30000);
 
 </script>
 </body>
