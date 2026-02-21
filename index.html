@@ -1,11 +1,9 @@
 <!DOCTYPE html>
 <html>
 <head>
-<link rel="manifest" href="manifest.json">
-<meta name="theme-color" content="#fdf6f0">
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Eggy Clicker</title>
+<title>Eggy Clicker Ultimate</title>
 
 <style>
 body{
@@ -15,7 +13,7 @@ background:#fdf6f0;
 text-align:center;
 }
 
-h1{margin-top:40px;}
+h1{margin-top:100px;}
 
 .panel{
 margin:10px auto;
@@ -35,13 +33,7 @@ border-radius:8px;
 font-weight:bold;
 }
 
-#homeScreen{
-margin-top:120px;
-}
-
-#gameScreen{
-display:none;
-}
+#gameScreen{display:none;}
 
 #clickWrapper{
 position:relative;
@@ -92,7 +84,7 @@ filter:grayscale(100%);
 opacity:0.5;
 }
 
-#wardrobePanel{background:#ff4d4d;color:white;}
+#wardrobePanel{background:#ff4d4d;color:white;display:none;}
 #shopPanel{background:#4da6ff;color:white;}
 #prestigePanel{background:orange;color:white;}
 #achievementsPanel{background:white;color:black;}
@@ -117,7 +109,11 @@ opacity:0.5;
 <div id="clickArea">🥚</div>
 </div>
 
-<div class="panel" id="wardrobePanel">
+<div class="panel">
+<button onclick="toggleWardrobe()">👕 Wardrobe</button>
+</div>
+
+<div id="wardrobePanel" class="panel">
 <h3>Wardrobe</h3>
 <div id="wardrobeList"></div>
 </div>
@@ -127,6 +123,7 @@ opacity:0.5;
 <button onclick="buyClick()" id="clickBtn"></button>
 <button onclick="buyAuto()" id="autoBtn"></button>
 <button onclick="buyCrit()" id="critBtn"></button>
+<button onclick="changeBackground()">Change Background (100)</button>
 </div>
 
 <div class="panel" id="prestigePanel">
@@ -173,7 +170,8 @@ ownedForms:[0],
 prestigeLevel:0,
 lastPlayed:Date.now(),
 lastDaily:0,
-achievements:[]
+achievements:[],
+background:"#fdf6f0"
 };
 
 let game;
@@ -182,6 +180,14 @@ const forms=["Normal","Cool","Top Hat","Crown"];
 const emojis=["🥚","😎🥚","🎩🥚","👑🥚"];
 const wardrobePrices=[0,1000,2500,5000];
 const tiers=["None","Bronze","Silver","Gold","Diamond"];
+
+function getTier(){
+if(game.prestigeLevel===0) return 0;
+if(game.prestigeLevel<3) return 1;
+if(game.prestigeLevel<6) return 2;
+if(game.prestigeLevel<9) return 3;
+return 4;
+}
 
 function notify(text){
 let n=document.getElementById("notification");
@@ -204,14 +210,13 @@ document.getElementById("gameScreen").style.display="block";
 function manualSave(){
 game.lastPlayed=Date.now();
 localStorage.setItem("eggySave",JSON.stringify(game));
-notify("Game Saved!");
+notify("Saved!");
 }
 
 function manualLoad(){
 let data=localStorage.getItem("eggySave");
 if(data){
 game=JSON.parse(data);
-applyOffline();
 updateUI();
 notify("Loaded!");
 }
@@ -221,7 +226,6 @@ function loadGameFromStorage(){
 let data=localStorage.getItem("eggySave");
 if(data){
 game=JSON.parse(data);
-applyOffline();
 }else{
 game=JSON.parse(JSON.stringify(defaultGame));
 }
@@ -248,19 +252,10 @@ location.reload();
 }
 }
 
-function applyOffline(){
-let diff=(Date.now()-game.lastPlayed)/1000;
-let earned=Math.floor(diff*game.passive);
-if(earned>0){
-game.points+=earned;
-notify("Offline Earnings: "+earned);
-}
-game.lastPlayed=Date.now();
-}
-
 function updateUI(){
+document.body.style.background=game.background;
 document.getElementById("points").innerText="Yolk: "+Math.floor(game.points);
-document.getElementById("eggName").innerText="Egg: "+tiers[Math.floor(game.prestigeLevel/2)]+" "+forms[game.form];
+document.getElementById("eggName").innerText="Egg: "+tiers[getTier()]+" "+forms[game.form];
 document.getElementById("prestigeBtn").innerText="Prestige Cost: "+(5000*(game.prestigeLevel+1));
 clickBtn.innerText="+1 Click ("+game.clickCost+")";
 autoBtn.innerText="+1 Auto/sec ("+game.autoCost+")";
@@ -272,7 +267,6 @@ renderAchievements();
 document.getElementById("clickArea").addEventListener("click",function(){
 
 if(!startedMusic){
-document.getElementById("music").volume=0.3;
 document.getElementById("music").play();
 startedMusic=true;
 }
@@ -331,19 +325,40 @@ game.critCost=Math.floor(game.critCost*1.8);
 }
 }
 
+function changeBackground(){
+if(game.points>=100){
+game.points-=100;
+let colors=["#fdf6f0","#d0f0ff","#ffe0f0","#e0ffd8","#fff0c2"];
+game.background=colors[Math.floor(Math.random()*colors.length)];
+updateUI();
+}
+}
+
 function prestige(){
 let cost=5000*(game.prestigeLevel+1);
 if(game.points>=cost){
-game=JSON.parse(JSON.stringify(defaultGame));
+game.points=0;
+game.clickValue=1;
+game.passive=0;
+game.critChance=0;
+game.clickCost=50;
+game.autoCost=200;
+game.critCost=300;
 game.prestigeLevel++;
 notify("Prestiged!");
 updateUI();
 }
 }
 
+function toggleWardrobe(){
+let panel=document.getElementById("wardrobePanel");
+panel.style.display=panel.style.display==="none"?"block":"none";
+}
+
 function renderWardrobe(){
 let list=document.getElementById("wardrobeList");
 list.innerHTML="";
+
 for(let i=0;i<forms.length;i++){
 let div=document.createElement("div");
 div.innerText=forms[i]+" ("+wardrobePrices[i]+")";
@@ -360,6 +375,11 @@ updateUI();
 };
 list.appendChild(div);
 }
+
+let prestigeInfo=document.createElement("div");
+prestigeInfo.innerHTML="<hr>Prestige Skins unlock at higher tiers!";
+list.appendChild(prestigeInfo);
+
 document.getElementById("clickArea").innerText=emojis[game.form];
 }
 
@@ -367,24 +387,21 @@ function renderAchievements(){
 let achDiv=document.getElementById("achievements");
 achDiv.innerHTML="";
 let achList=[
-["Click 10 times",game.totalClicks>=10],
-["Click 100 times",game.totalClicks>=100],
-["Click 1000 times",game.totalClicks>=1000],
-["Click 10k times",game.totalClicks>=10000],
+["Click 10",game.totalClicks>=10],
+["Click 100",game.totalClicks>=100],
+["Click 1000",game.totalClicks>=1000],
 ["Reach 1k",game.points>=1000],
 ["Reach 10k",game.points>=10000],
-["Reach 100k",game.points>=100000],
-["Buy Cool Eggy",game.ownedForms.includes(1)],
+["Buy Cool",game.ownedForms.includes(1)],
 ["Buy Top Hat",game.ownedForms.includes(2)],
 ["Buy Crown",game.ownedForms.includes(3)],
 ["First Prestige",game.prestigeLevel>=1],
-["Bronze Tier",game.prestigeLevel>=2],
-["Silver Tier",game.prestigeLevel>=4],
-["Gold Tier",game.prestigeLevel>=6],
-["Diamond Tier",game.prestigeLevel>=8],
+["Bronze Tier",getTier()>=1],
+["Silver Tier",getTier()>=2],
+["Gold Tier",getTier()>=3],
+["Diamond Tier",getTier()>=4],
 ["5% Crit",game.critChance>=0.05],
 ["25% Crit",game.critChance>=0.25],
-["50% Crit",game.critChance>=0.5],
 ["10 Auto",game.passive>=10],
 ["100 Click Power",game.clickValue>=100],
 ["Millionaire",game.points>=1000000]
@@ -403,8 +420,5 @@ achDiv.appendChild(div);
 }
 
 </script>
-if ("serviceWorker" in navigator) {
-  navigator.serviceWorker.register("service-worker.js");
-}
 </body>
 </html>
