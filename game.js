@@ -351,3 +351,95 @@ function applyEggBonus(){
 
 // Run bonus every update
 setInterval(applyEggBonus,500);
+
+// =======================
+// RANK LADDER SYSTEM
+// =======================
+
+function getRankName(level){
+
+  if(level === 0) return "None";
+
+  if(level <= 2) return "Bronze " + level;
+  if(level <= 4) return "Silver " + (level-2);
+  if(level <= 6) return "Gold " + (level-4);
+  if(level <= 8) return "Diamond " + (level-6);
+
+  if(level <= 18) return "Master " + (level-8);
+
+  return "Ultimate Master";
+}
+
+function updateRankDisplay(){
+  document.getElementById("rankDisplay").innerText =
+    "Rank: " + getRankName(game.prestige);
+}
+
+setInterval(updateRankDisplay,500);
+
+
+// =======================
+// FIX PRESTIGE SYSTEM
+// =======================
+
+function prestige(){
+
+  const cost = 10000 * (game.prestige + 1);
+
+  if(game.points < cost){
+    notify("Not enough Yolk!");
+    return;
+  }
+
+  game.prestige++;
+  game.points = 0;
+  game.clickValue = 1;
+  game.autoValue = 0;
+  game.critChance = 0.05;
+  game.form = 0;
+
+  notify("Prestige Complete!");
+  updateUI();
+  buildWardrobe();
+}
+
+
+// =======================
+// GOD MODE (WORKING)
+// =======================
+
+function activateGodMode(){
+
+  game.clickValue = 1000;
+  game.autoValue = 500;
+  game.critChance = 0.5;
+
+  notify("GOD MODE ACTIVATED");
+}
+
+
+// =======================
+// SIMPLE ANTI-CHEAT
+// =======================
+
+let lastPoints = 0;
+
+setInterval(()=>{
+  if(game.points - lastPoints > 100000000){
+    game.points = lastPoints;
+    notify("Cheat detected!");
+  }
+  lastPoints = game.points;
+},1000);
+
+
+// =======================
+// BUTTON COLORS FIX
+// =======================
+
+window.onload = function(){
+
+  document.getElementById("shopBtn").style.background = "#2196f3"; // blue
+  document.getElementById("prestigeBtn").style.background = "#ff9800"; // orange
+  document.getElementById("deleteBtn").style.background = "#f44336"; // red
+};
