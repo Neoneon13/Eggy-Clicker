@@ -719,26 +719,12 @@ function toggleEmoji(){
    WARDROBE SYSTEM
 ========================= */
 
-function toggleWardrobe(){
-
-  const panel = document.getElementById("wardrobePanel");
-
-  if(panel.style.display === "none"){
-    panel.style.display = "block";
-    buildWardrobe();
-  } else {
-    panel.style.display = "none";
-  }
-}
-
 function buildWardrobe(){
 
   const panel = document.getElementById("wardrobePanel");
   panel.innerHTML = "";
 
   tiers.forEach((tierName, tierIndex)=>{
-
-    if(tierIndex === 0) return; // skip NONE display
 
     const section = document.createElement("div");
     section.innerHTML = "<h4>"+tierName+"</h4>";
@@ -749,20 +735,42 @@ function buildWardrobe(){
       const owned = game.ownedSkins.includes(key);
 
       const btn = document.createElement("button");
-      btn.innerText = tierName + " " + formName;
 
-      if(!owned){
+      // Price logic
+      let price = 0;
+
+      if(tierIndex === 0){
+        price = 0; // NONE tier free
+      } else {
+        price = 500 * tierIndex * (formIndex+1);
+      }
+
+      if(owned){
+        btn.innerText = "Use " + tierName + " " + formName;
+      } else {
+        btn.innerText = tierName + " " + formName + " ("+price+")";
         btn.classList.add("locked");
       }
 
       btn.onclick = function(){
 
-        if(!owned){
-          notify("Locked!");
+        if(owned){
+          game.form = formIndex;
+          updateUI();
           return;
         }
 
-        game.form = formIndex;
+        // Buying logic
+        if(game.points < price){
+          notify("Not enough Yolk!");
+          return;
+        }
+
+        game.points -= price;
+        game.ownedSkins.push(key);
+        notify("Purchased " + tierName + " " + formName);
+
+        buildWardrobe();
         updateUI();
       };
 
