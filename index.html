@@ -723,7 +723,9 @@ function toggleWardrobe(){
 
   const panel = document.getElementById("wardrobePanel");
 
-  if(panel.style.display === "none"){
+  const isHidden = panel.style.display === "none" || panel.style.display === "";
+
+  if(isHidden){
     panel.style.display = "block";
     buildWardrobe();
   } else {
