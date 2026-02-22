@@ -216,37 +216,37 @@ panel.style.display=panel.style.display==="none"?"block":"none";
 }
 
 // ================= ACHIEVEMENTS =================
-const achievements=[
-{id:"click1",name:"First Click",check:()=>game.totalClicks>=1},
-{id:"click100",name:"100 Clicks",check:()=>game.totalClicks>=100},
-{id:"click1000",name:"1000 Clicks",check:()=>game.totalClicks>=1000},
-{id:"points100",name:"100 Points",check:()=>game.points>=100},
-{id:"points1000",name:"1000 Points",check:()=>game.points>=1000},
-{id:"prest1",name:"First Prestige",check:()=>game.prestige>=1}
+
+const achievements = [
+
+{ id:"c1", name:"First Crack", check:()=>game.totalClicks>=1 },
+{ id:"c50", name:"Shell Tapper", check:()=>game.totalClicks>=50 },
+{ id:"c100", name:"Egg Breaker", check:()=>game.totalClicks>=100 },
+{ id:"c500", name:"Yolk Puncher", check:()=>game.totalClicks>=500 },
+{ id:"c1000", name:"Shell Destroyer", check:()=>game.totalClicks>=1000 },
+{ id:"c5000", name:"Egg Obliterator", check:()=>game.totalClicks>=5000 },
+
+{ id:"p100", name:"100 Yolk", check:()=>game.points>=100 },
+{ id:"p1000", name:"1k Yolk", check:()=>game.points>=1000 },
+{ id:"p10000", name:"10k Yolk", check:()=>game.points>=10000 },
+{ id:"p100000", name:"100k Yolk", check:()=>game.points>=100000 },
+
+{ id:"auto10", name:"Auto x10", check:()=>game.autoValue>=10 },
+{ id:"auto50", name:"Auto x50", check:()=>game.autoValue>=50 },
+
+{ id:"crit10", name:"10% Crit", check:()=>game.critChance>=0.10 },
+{ id:"crit25", name:"25% Crit", check:()=>game.critChance>=0.25 },
+
+{ id:"prest1", name:"Bronze I", check:()=>game.prestige>=1 },
+{ id:"prest2", name:"Bronze II", check:()=>game.prestige>=2 },
+{ id:"prest3", name:"Silver I", check:()=>game.prestige>=3 },
+{ id:"prest4", name:"Silver II", check:()=>game.prestige>=4 },
+{ id:"prest5", name:"Gold I", check:()=>game.prestige>=5 },
+{ id:"prest6", name:"Gold II", check:()=>game.prestige>=6 },
+{ id:"prest7", name:"Diamond I", check:()=>game.prestige>=7 },
+{ id:"prest8", name:"Master I", check:()=>game.prestige>=8 }
+
 ];
-
-function buildAchievements(){
-let list=document.getElementById("achievementList");
-list.innerHTML="";
-achievements.forEach(a=>{
-let div=document.createElement("div");
-div.className="achievement locked";
-div.id="ach-"+a.id;
-div.innerText=a.name;
-list.appendChild(div);
-});
-}
-
-function checkAchievements(){
-achievements.forEach(a=>{
-if(!game.achievements.includes(a.id)&&a.check()){
-game.achievements.push(a.id);
-let div=document.getElementById("ach-"+a.id);
-div.classList.remove("locked");
-div.classList.add("unlocked");
-}
-});
-}
 
 // ================= SAVE =================
 function saveGame(){
