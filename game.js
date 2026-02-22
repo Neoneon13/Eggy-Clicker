@@ -114,6 +114,8 @@ totalClicks:0
 
 let clickTimes=[];
 
+const forms = ["Normal","Cool","Top Hat","Crown"];
+
 // ================= START =================
 function startGame(){
 let name=document.getElementById("usernameInput").value.trim();
@@ -134,7 +136,16 @@ updateUI();
 // ================= CLICK =================
 document.getElementById("egg").onclick=function(){
 
-let value=game.clickValue*(1+game.prestige*0.1);
+let value = game.clickValue * (1 + game.prestige * 0.1);
+
+// Tier scaling bonus
+let tierBonus = 1 + (game.prestige * 0.2);
+value *= tierBonus;
+
+// Form bonuses
+if(forms[game.form] === "Cool") value *= 1.2;
+if(forms[game.form] === "Top Hat") value *= 1.4;
+if(forms[game.form] === "Crown") value *= 1.7;
 
 if(Math.random()<game.critChance){
 value*=3;
