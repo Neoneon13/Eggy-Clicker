@@ -167,3 +167,88 @@ function notify(text){
   n.style.display="block";
   setTimeout(()=>n.style.display="none",1500);
 }
+
+// =======================
+// ACHIEVEMENTS SYSTEM
+// =======================
+
+const achievementList = [
+
+  // Clicks
+  { id:"click1", name:"First Crack", desc:"Click 1 time", check:()=>game.totalClicks>=1 },
+  { id:"click100", name:"Egg Tapper", desc:"Click 100 times", check:()=>game.totalClicks>=100 },
+  { id:"click1000", name:"Shell Breaker", desc:"Click 1,000 times", check:()=>game.totalClicks>=1000 },
+  { id:"click10000", name:"Yolk Overlord", desc:"Click 10,000 times", check:()=>game.totalClicks>=10000 },
+
+  // Points
+  { id:"pts100", name:"Yolk Collector", desc:"Reach 100 Yolk", check:()=>game.points>=100 },
+  { id:"pts1000", name:"Rich Egg", desc:"Reach 1,000 Yolk", check:()=>game.points>=1000 },
+  { id:"pts10000", name:"Golden Egg", desc:"Reach 10,000 Yolk", check:()=>game.points>=10000 },
+  { id:"pts100000", name:"Yolk Tycoon", desc:"Reach 100,000 Yolk", check:()=>game.points>=100000 },
+
+  // Prestige
+  { id:"prest1", name:"Bronze I", desc:"Prestige once", check:()=>game.prestige>=1 },
+  { id:"prest2", name:"Bronze II", desc:"Reach Bronze II", check:()=>game.prestige>=2 },
+  { id:"prest3", name:"Silver I", desc:"Reach Silver", check:()=>game.prestige>=3 },
+  { id:"prest4", name:"Silver II", desc:"Reach Silver II", check:()=>game.prestige>=4 },
+  { id:"prest5", name:"Gold I", desc:"Reach Gold", check:()=>game.prestige>=5 },
+  { id:"prest6", name:"Gold II", desc:"Reach Gold II", check:()=>game.prestige>=6 },
+  { id:"prest7", name:"Diamond I", desc:"Reach Diamond", check:()=>game.prestige>=7 },
+  { id:"prest8", name:"Master I", desc:"Reach Master", check:()=>game.prestige>=8 },
+
+  // Crit streak
+  { id:"crit5", name:"Lucky Egg", desc:"5 crit streak", check:()=>game.maxCritStreak>=5 },
+  { id:"crit10", name:"Crit Machine", desc:"10 crit streak", check:()=>game.maxCritStreak>=10 },
+  { id:"crit20", name:"Crit God", desc:"20 crit streak", check:()=>game.maxCritStreak>=20 },
+
+  // CPS
+  { id:"cps5", name:"Speed Tapper", desc:"5 CPS", check:()=>clickTimes.length>=5 },
+  { id:"cps10", name:"Turbo Tapper", desc:"10 CPS", check:()=>clickTimes.length>=10 },
+  { id:"cps20", name:"Finger Destroyer", desc:"20 CPS", check:()=>clickTimes.length>=20 },
+
+  // Forms
+  { id:"cool", name:"Too Cool", desc:"Equip Cool Egg", check:()=>forms[game.form]==="Cool" },
+  { id:"tophat", name:"Fancy Egg", desc:"Equip Top Hat", check:()=>forms[game.form]==="Top Hat" },
+  { id:"crown", name:"Royal Egg", desc:"Equip Crown", check:()=>forms[game.form]==="Crown" },
+
+  // Auto
+  { id:"auto10", name:"Auto Beginner", desc:"10 auto", check:()=>game.autoValue>=10 },
+  { id:"auto50", name:"Auto Builder", desc:"50 auto", check:()=>game.autoValue>=50 },
+  { id:"auto100", name:"Auto Factory", desc:"100 auto", check:()=>game.autoValue>=100 },
+
+  // Prestige Power
+  { id:"prest10", name:"Ultimate Master", desc:"Prestige 10 times", check:()=>game.prestige>=10 }
+
+];
+
+function buildAchievements(){
+  const container = document.getElementById("achievementList");
+  container.innerHTML = "";
+
+  achievementList.forEach(a=>{
+    const div = document.createElement("div");
+    div.className = "achievement";
+    div.id = "ach-"+a.id;
+    div.innerHTML = "<b>"+a.name+"</b><br>"+a.desc;
+    container.appendChild(div);
+  });
+}
+
+function checkAchievements(){
+  achievementList.forEach(a=>{
+    if(!game.achievements.includes(a.id) && a.check()){
+      unlockAchievement(a.id,a.name);
+    }
+  });
+}
+
+function unlockAchievement(id,name){
+  game.achievements.push(id);
+
+  const div = document.getElementById("ach-"+id);
+  if(div){
+    div.classList.add("unlocked");
+  }
+
+  notify("Achievement Unlocked: "+name);
+}
