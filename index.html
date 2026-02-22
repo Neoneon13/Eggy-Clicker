@@ -741,7 +741,11 @@ function buildWardrobe(){
   tiers.forEach((tierName, tierIndex)=>{
 
     const section = document.createElement("div");
-    section.innerHTML = "<h4>"+tierName+"</h4>";
+    section.style.marginBottom = "12px";
+
+    const title = document.createElement("h4");
+    title.innerText = tierName + " Tier";
+    section.appendChild(title);
 
     forms.forEach((formName, formIndex)=>{
 
@@ -750,15 +754,15 @@ function buildWardrobe(){
 
       const btn = document.createElement("button");
 
-      // Price logic
       let price = 0;
 
       if(tierIndex === 0){
-        price = 0; // NONE tier free
+        price = 0;
       } else {
         price = 500 * tierIndex * (formIndex+1);
       }
 
+      // TEXT
       if(owned){
         btn.innerText = "Use " + tierName + " " + formName;
       } else {
@@ -766,15 +770,28 @@ function buildWardrobe(){
         btn.classList.add("locked");
       }
 
+      // EQUIPPED HIGHLIGHT
+      if(game.form === formIndex){
+        btn.style.border = "2px solid green";
+      }
+
+      // DIAMOND + MASTER GLOW
+      if(tierIndex === 4){
+        btn.style.boxShadow = "0 0 8px cyan";
+      }
+      if(tierIndex === 5){
+        btn.style.boxShadow = "0 0 12px gold";
+      }
+
       btn.onclick = function(){
 
         if(owned){
           game.form = formIndex;
           updateUI();
+          buildWardrobe();
           return;
         }
 
-        // Buying logic
         if(game.points < price){
           notify("Not enough Yolk!");
           return;
