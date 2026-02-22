@@ -82,6 +82,37 @@ button:active{
 }
 
 /* =========================
+   INSANE EGG ANIMATIONS
+========================= */
+
+@keyframes eggWobble{
+  0%{transform:rotate(0deg);}
+  25%{transform:rotate(-4deg);}
+  50%{transform:rotate(4deg);}
+  75%{transform:rotate(-3deg);}
+  100%{transform:rotate(0deg);}
+}
+
+@keyframes masterGlow{
+  0%{text-shadow:0 0 8px gold;}
+  50%{text-shadow:0 0 20px orange;}
+  100%{text-shadow:0 0 8px gold;}
+}
+
+@keyframes diamondPulse{
+  0%{box-shadow:0 0 5px cyan;}
+  50%{box-shadow:0 0 18px white;}
+  100%{box-shadow:0 0 5px cyan;}
+}
+
+.sparkle{
+  position:absolute;
+  font-size:18px;
+  pointer-events:none;
+  animation:floatUp 1.5s forwards;
+}
+
+/* =========================
    LOGIN SCREEN
 ========================= */
 
