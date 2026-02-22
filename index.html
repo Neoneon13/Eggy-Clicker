@@ -1080,6 +1080,32 @@ Object.defineProperty(game || {}, "critChance", {
   configurable:true
 });
 
+/* =========================
+   Crown Sparkle
+========================= */
+
+function crownSparkle(){
+
+  if(!game) return;
+
+  if(forms[game.form] !== "Crown") return;
+
+  const wrap = document.getElementById("clickWrapper");
+
+  const sparkle = document.createElement("div");
+  sparkle.className = "sparkle";
+  sparkle.innerText = "✨";
+
+  sparkle.style.left = Math.random()*120 + "px";
+  sparkle.style.top = Math.random()*60 + "px";
+
+  wrap.appendChild(sparkle);
+
+  setTimeout(()=>{ sparkle.remove(); },1500);
+}
+
+setInterval(crownSparkle, 800);
+
 </script>
 
 </body>
