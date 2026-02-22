@@ -1020,19 +1020,14 @@ function applyRankEffect(){
 
   if(game.prestige >= 9){
     rankText.style.color = "gold";
-    rankText.style.textShadow = "0 0 8px gold";
+    rankText.style.animation = "masterGlow 2s infinite";
+    document.body.style.animation = "diamondPulse 4s infinite";
   } else {
     rankText.style.color = "black";
-    rankText.style.textShadow = "none";
+    rankText.style.animation = "none";
+    document.body.style.animation = "none";
   }
 }
-
-const oldUpdateUI = updateUI;
-updateUI = function(){
-  oldUpdateUI();
-  applyRankEffect();
-};
-
 
 /* =========================
    ACHIEVEMENT RENDER FIX
