@@ -252,3 +252,102 @@ function unlockAchievement(id,name){
 
   notify("Achievement Unlocked: "+name);
 }
+
+// =======================
+// WARDROBE SYSTEM
+// =======================
+
+function buildWardrobe(){
+  const container = document.getElementById("wardrobeItems");
+  container.innerHTML = "";
+
+  const tierCount = Math.min(game.prestige + 1, tiers.length);
+
+  for(let t = 0; t < tierCount; t++){
+    for(let f = 0; f < forms.length; f++){
+
+      const id = t + "-" + f;
+      const div = document.createElement("div");
+      div.className = "skinItem";
+
+      const price = getSkinPrice(t,f);
+      const owned = game.ownedSkins.includes(id);
+      const equipped = (game.form === f && game.prestige === t);
+
+      div.innerHTML = `
+        <b>${tiers[t]} ${forms[f]}</b><br>
+        ${owned ? "Owned" : price + " Yolk"}
+      `;
+
+      if(equipped){
+        div.classList.add("equipped");
+      }
+
+      div.onclick = () => {
+
+        // LOCK CHECK
+        if(game.prestige < t){
+          notify("LOCKED");
+          return;
+        }
+
+        // BUY
+        if(!owned){
+          if(game.points < price){
+            notify("Not enough Yolk!");
+            return;
+          }
+          game.points -= price;
+          game.ownedSkins.push(id);
+          notify("Purchased!");
+        }
+
+        // EQUIP
+        game.form = f;
+        game.prestige = t;
+        notify("Equipped!");
+
+        updateUI();
+        buildWardrobe();
+      };
+
+      container.appendChild(div);
+    }
+  }
+}
+
+// ---------- PRICE LOGIC ----------
+function getSkinPrice(t,f){
+
+  let base = 0;
+
+  if(t === 0){ base = 100; }
+  if(t === 1){ base = 500; }
+  if(t === 2){ base = 2000; }
+  if(t === 3){ base = 10000; }
+  if(t === 4){ base = 50000; }
+  if(t === 5){ base = 250000; }
+  if(t === 6){ base = 1000000; }
+  if(t === 7){ base = 5000000; }
+  if(t >= 8){ base = 25000000; } // MASTER INSANE
+
+  return base * (f + 1);
+}
+
+// ---------- BETTER EGG = BETTER REWARD ----------
+const originalClick = game.clickValue;
+
+function applyEggBonus(){
+  let multiplier = 1;
+
+  if(forms[game.form] === "Cool") multiplier = 1.1;
+  if(forms[game.form] === "Top Hat") multiplier = 1.25;
+  if(forms[game.form] === "Crown") multiplier = 1.5;
+
+  multiplier += game.prestige * 0.05;
+
+  game.clickValue = originalClick * multiplier;
+}
+
+// Run bonus every update
+setInterval(applyEggBonus,500);
