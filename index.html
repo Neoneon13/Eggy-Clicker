@@ -1106,6 +1106,29 @@ function crownSparkle(){
 
 setInterval(crownSparkle, 800);
 
+/* =========================
+   Tier Celebration
+========================= */
+
+
+function tierCelebration(tierIndex){
+
+  for(let i=0;i<15;i++){
+    const burst = document.createElement("div");
+    burst.className="sparkle";
+    burst.innerText="💥";
+
+    burst.style.left = (Math.random()*window.innerWidth) + "px";
+    burst.style.top = (Math.random()*window.innerHeight) + "px";
+
+    document.body.appendChild(burst);
+
+    setTimeout(()=>{ burst.remove(); },1500);
+  }
+
+  notify("FULL " + tiers[tierIndex] + " SET COMPLETE!");
+}
+
 </script>
 
 </body>
