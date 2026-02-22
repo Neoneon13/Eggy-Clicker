@@ -210,9 +210,56 @@ updateUI();
 }
 
 // ================= WARDROBE =================
+// ================= WARDROBE =================
+
+const forms = ["Normal","Cool","Top Hat","Crown"];
+const tiers = ["None","Bronze I","Bronze II","Silver I","Silver II","Gold I","Gold II","Diamond I","Master I"];
+
 function toggleWardrobe(){
 let panel=document.getElementById("wardrobePanel");
 panel.style.display=panel.style.display==="none"?"block":"none";
+buildWardrobe();
+}
+
+function buildWardrobe(){
+let panel=document.getElementById("wardrobePanel");
+panel.innerHTML="";
+
+for(let t=0;t<tiers.length;t++){
+
+if(t>game.prestige) continue;
+
+for(let f=0;f<forms.length;f++){
+
+let id=t+"-"+f;
+let owned=game.ownedSkins.includes(id);
+let price=(100*(f+1))*(t+1)*5;
+
+let btn=document.createElement("button");
+
+btn.innerText=tiers[t]+" "+forms[f]+
+(owned?" (Owned)":" - "+price);
+
+if(game.form===f && owned){
+btn.style.border="3px solid lime";
+}
+
+btn.onclick=function(){
+
+if(!owned){
+if(game.points<price)return;
+game.points-=price;
+game.ownedSkins.push(id);
+}
+
+game.form=f;
+updateUI();
+buildWardrobe();
+};
+
+panel.appendChild(btn);
+}
+}
 }
 
 // ================= ACHIEVEMENTS =================
