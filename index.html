@@ -792,11 +792,7 @@ function buildWardrobe(){
   tiers.forEach((tierName, tierIndex)=>{
 
     const section = document.createElement("div");
-    section.style.marginBottom = "12px";
-
-    const title = document.createElement("h4");
-    title.innerText = tierName + " Tier";
-    section.appendChild(title);
+    section.innerHTML = "<h4>"+tierName+" Tier</h4>";
 
     forms.forEach((formName, formIndex)=>{
 
@@ -805,13 +801,56 @@ function buildWardrobe(){
 
       const btn = document.createElement("button");
 
-      let price = 0;
+      // PRESTIGE REQUIREMENT
+      const requiredPrestige = tierIndex * 2;
+
+      // PRICE SCALING (BIG SCALING)
+      let price;
 
       if(tierIndex === 0){
-        price = 0;
+        price = 100 * (formIndex+1); // NONE tier now costs
       } else {
-        price = 500 * tierIndex * (formIndex+1);
+        price = 2000 * tierIndex * (formIndex+1);
       }
+
+      // LOCK IF NOT ENOUGH PRESTIGE
+      if(game.prestige < requiredPrestige){
+        btn.innerText = tierName + " (Requires Prestige " + requiredPrestige + ")";
+        btn.classList.add("locked");
+        btn.onclick = ()=>notify("Prestige too low!");
+      }
+      else if(owned){
+        btn.innerText = "Use " + tierName + " " + formName;
+      }
+      else{
+        btn.innerText = tierName + " " + formName + " ("+price+")";
+        btn.classList.add("locked");
+        btn.onclick = function(){
+
+          if(game.points < price){
+            notify("Not enough Yolk!");
+            return;
+          }
+
+          game.points -= price;
+          game.ownedSkins.push(key);
+          notify("Purchased " + tierName + " " + formName);
+          buildWardrobe();
+          updateUI();
+        };
+      }
+
+      // EQUIPPED BORDER (ONLY IF OWNED + SELECTED TIER)
+      if(owned && game.form === formIndex){
+        btn.style.border = "3px solid green";
+      }
+
+      section.appendChild(btn);
+    });
+
+    panel.appendChild(section);
+  });
+}
 
       // TEXT
       if(owned){
