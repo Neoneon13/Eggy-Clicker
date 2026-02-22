@@ -164,3 +164,11 @@ button:hover{
   grid-template-columns: repeat(2, 1fr);
   gap: 8px;
 }
+
+.masterGlow {
+  box-shadow: 0 0 30px purple;
+}
+
+.diamondGlow {
+  box-shadow: 0 0 25px cyan;
+}
