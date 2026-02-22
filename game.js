@@ -93,41 +93,52 @@ function showFloating(value,x,y){
 // ===============================
 // SHOP
 // ===============================
-document.getElementById("clickUpgrade").onclick = function(){
-  const cost = 50;
-  if(game.points >= cost){
-    game.points -= cost;
-    game.clickValue++;
-    updateUI();
-  }
-};
 
-document.getElementById("autoUpgrade").onclick = function(){
-  const cost = 200;
-  if(game.points >= cost){
-    game.points -= cost;
-    game.autoValue++;
-    updateUI();
-  }
-};
+function setupShop(){
 
-document.getElementById("critUpgrade").onclick = function(){
-  const cost = 500;
-  if(game.points >= cost){
-    game.points -= cost;
-    game.critChance += 0.01;
-    updateUI();
-  }
-};
+  const clickBtn = document.getElementById("clickUpgrade");
+  const autoBtn  = document.getElementById("autoUpgrade");
+  const critBtn  = document.getElementById("critUpgrade");
+  const bgBtn    = document.getElementById("bgUpgrade");
 
-document.getElementById("bgUpgrade").onclick = function(){
-  const cost = 100;
-  if(game.points >= cost){
-    game.points -= cost;
-    document.body.style.background =
-      "linear-gradient(135deg,#"+Math.floor(Math.random()*999999)+",#000)";
-  }
-};
+  clickBtn.innerText = "Upgrade Click (+1) - 50";
+  autoBtn.innerText  = "Auto Clicker (+1/sec) - 200";
+  critBtn.innerText  = "Increase Crit Chance (+1%) - 500";
+  bgBtn.innerText    = "Change Background - 100";
+
+  clickBtn.onclick = function(){
+    if(game.points >= 50){
+      game.points -= 50;
+      game.clickValue++;
+      updateUI();
+    } else notify("Not enough Yolk!");
+  };
+
+  autoBtn.onclick = function(){
+    if(game.points >= 200){
+      game.points -= 200;
+      game.autoValue++;
+      updateUI();
+    } else notify("Not enough Yolk!");
+  };
+
+  critBtn.onclick = function(){
+    if(game.points >= 500){
+      game.points -= 500;
+      game.critChance += 0.01;
+      updateUI();
+    } else notify("Not enough Yolk!");
+  };
+
+  bgBtn.onclick = function(){
+    if(game.points >= 100){
+      game.points -= 100;
+      document.body.style.background =
+        "linear-gradient(135deg,#"+Math.floor(Math.random()*999999)+",#000)";
+      updateUI();
+    } else notify("Not enough Yolk!");
+  };
+}
 
 // ===============================
 // AUTO EARN
