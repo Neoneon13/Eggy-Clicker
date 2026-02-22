@@ -41,6 +41,7 @@ function startGame(){
   updateUI();
   buildWardrobe();
   buildAchievements();
+  setupShop();
 }
 
 // ===============================
@@ -278,6 +279,7 @@ function loadGame(){
   updateUI();
   buildWardrobe();
   buildAchievements();
+  setupShop();
 }
 
 function exportGame(){
