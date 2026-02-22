@@ -719,6 +719,18 @@ function toggleEmoji(){
    WARDROBE SYSTEM
 ========================= */
 
+function toggleWardrobe(){
+
+  const panel = document.getElementById("wardrobePanel");
+
+  if(panel.style.display === "none"){
+    panel.style.display = "block";
+    buildWardrobe();
+  } else {
+    panel.style.display = "none";
+  }
+}
+
 function buildWardrobe(){
 
   const panel = document.getElementById("wardrobePanel");
