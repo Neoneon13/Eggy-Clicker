@@ -176,6 +176,9 @@ function prestige(){
   game.autoValue=0;
   game.critChance=0.05;
   game.prestige++;
+  
+  document.getElementById("egg").classList.add("prestigeGlow");
+setTimeout(()=>document.getElementById("egg").classList.remove("prestigeGlow"),3000);
 
   updateUI();
   buildWardrobe();
