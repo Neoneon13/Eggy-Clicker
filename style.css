@@ -1,104 +1,138 @@
-body{
-  margin:0;
-  font-family:Arial;
-  background:#ffffff;
-  color:#222;
-  display:flex;
-  justify-content:center;
+/* ============================= */
+/* 🥚 EGGY CLICKER INSANE STYLE */
+/* ============================= */
+
+body {
+  margin: 0;
+  font-family: Arial, Helvetica, sans-serif;
+  background: #ffffff;
+  text-align: center;
+  overflow-x: hidden;
 }
 
-#app{
-  width:100%;
-  max-width:500px;
-  padding:20px;
-  text-align:center;
+/* Center Layout */
+#gameScreen {
+  max-width: 500px;
+  margin: auto;
+  padding: 20px;
 }
 
-.hidden{
+/* Egg */
+#egg {
+  font-size: 120px;
+  cursor: pointer;
+  transition: transform 0.08s ease, filter 0.2s ease;
+  user-select: none;
+}
+
+#egg:hover {
+  transform: scale(1.08);
+}
+
+#egg:active {
+  transform: scale(0.92);
+  filter: brightness(1.2);
+}
+
+/* Glow Pulse */
+@keyframes eggGlow {
+  0% { filter: drop-shadow(0 0 5px gold); }
+  50% { filter: drop-shadow(0 0 25px gold); }
+  100% { filter: drop-shadow(0 0 5px gold); }
+}
+
+.prestigeGlow {
+  animation: eggGlow 2s infinite;
+}
+
+/* Buttons */
+button {
+  padding: 10px 14px;
+  margin: 6px;
+  border-radius: 10px;
+  border: none;
+  font-weight: bold;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 5px 15px rgba(0,0,0,0.15);
+}
+
+button:active {
+  transform: scale(0.95);
+}
+
+/* Specific Colors */
+#shopBtn { background:#3498db; color:white; }
+#prestigeBtn { background:#e67e22; color:white; }
+#deleteBtn { background:#e74c3c; color:white; }
+
+/* Wardrobe */
+#wardrobePanel button {
+  width: 90%;
+  margin: 4px auto;
+  display: block;
+}
+
+#wardrobePanel button[style*="lime"] {
+  box-shadow: 0 0 15px lime;
+}
+
+/* Achievements */
+.achievement {
+  padding: 8px;
+  margin: 4px;
+  border-radius: 8px;
+  font-size: 14px;
+}
+
+.locked {
+  background: #eee;
+  color: #999;
+}
+
+.unlocked {
+  background: gold;
+  color: black;
+  box-shadow: 0 0 10px gold;
+}
+
+/* Floating Numbers */
+.floatingNumber {
+  position: absolute;
+  font-weight: bold;
+  pointer-events: none;
+  animation: floatUp 1s forwards;
+}
+
+@keyframes floatUp {
+  0% { opacity:1; transform:translateY(0px); }
+  100% { opacity:0; transform:translateY(-60px); }
+}
+
+/* Screen Shake */
+@keyframes shake {
+  0% { transform: translate(0px,0px); }
+  25% { transform: translate(3px,-3px); }
+  50% { transform: translate(-3px,3px); }
+  75% { transform: translate(3px,3px); }
+  100% { transform: translate(0px,0px); }
+}
+
+.shake {
+  animation: shake 0.2s;
+}
+
+/* Mobile Friendly */
+@media (max-width:600px) {
+  #egg { font-size:90px; }
+  button { width:90%; }
+}
+
+/* Hidden */
+.hidden {
   display:none;
-}
-
-.title{
-  font-size:42px;
-  margin-top:80px;
-  color:#f4b400;
-}
-
-input{
-  padding:12px;
-  width:80%;
-  margin:15px 0;
-  border-radius:8px;
-  border:2px solid #ddd;
-}
-
-button{
-  padding:10px 14px;
-  margin:6px;
-  border:none;
-  border-radius:8px;
-  font-weight:bold;
-  cursor:pointer;
-}
-
-.buttonRow{
-  display:flex;
-  flex-wrap:wrap;
-  justify-content:center;
-}
-
-.blue{background:#2196f3;color:white;}
-.orange{background:#ff9800;color:white;}
-.red{background:#e53935;color:white;}
-.green{background:#4caf50;color:white;}
-
-.panel{
-  background:#f5f5f5;
-  padding:15px;
-  border-radius:12px;
-  margin:20px 0;
-}
-
-.topBar{
-  display:flex;
-  justify-content:space-between;
-  align-items:center;
-}
-
-#egg{
-  font-size:120px;
-  cursor:pointer;
-  margin:30px 0;
-  transition:0.1s;
-}
-
-#egg:active{
-  transform:scale(0.9);
-}
-
-#wardrobePanel button{
-  display:block;
-  width:100%;
-  margin:5px 0;
-}
-
-.achievementGrid{
-  display:grid;
-  grid-template-columns:repeat(2,1fr);
-  gap:6px;
-}
-
-.achievement{
-  padding:6px;
-  background:#e0e0e0;
-  border-radius:6px;
-  font-size:13px;
-}
-
-.locked{opacity:0.4;}
-.unlocked{background:#fff3cd;}
-
-@media(max-width:480px){
-  #app{padding:10px;}
-  .topBar{flex-direction:column;}
 }
