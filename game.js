@@ -1,103 +1,3 @@
-<!DOCTYPE html>
-<html>
-<head>
-<meta charset="UTF-8">
-<title>Eggy Clicker</title>
-<style>
-body{
-  margin:0;
-  font-family:Arial;
-  background:linear-gradient(135deg,#1a1a1a,#000);
-  color:white;
-  text-align:center;
-}
-
-button{
-  padding:10px 15px;
-  margin:5px;
-  border:none;
-  border-radius:8px;
-  cursor:pointer;
-  font-weight:bold;
-}
-
-#egg{
-  font-size:90px;
-  cursor:pointer;
-  margin:20px;
-}
-
-.panel{
-  margin:15px;
-  padding:10px;
-  background:#222;
-  border-radius:10px;
-}
-
-.achievement{
-  background:#333;
-  margin:5px;
-  padding:5px;
-  border-radius:6px;
-}
-
-.locked{
-  opacity:0.4;
-}
-
-.unlocked{
-  background:gold;
-  color:black;
-}
-
-#loginScreen{
-  margin-top:100px;
-}
-</style>
-</head>
-<body>
-
-<div id="loginScreen">
-  <h1>🥚 Eggy Clicker</h1>
-  <input id="usernameInput" placeholder="Username">
-  <button onclick="startGame()">Start</button>
-  <button onclick="loadGame()">Load</button>
-</div>
-
-<div id="gameScreen" style="display:none;">
-
-<h2 id="playerName"></h2>
-
-<h1 id="points">0</h1>
-<div id="cpsDisplay">CPS: 0</div>
-
-<div id="egg">🥚</div>
-
-<button onclick="prestige()">Prestige</button>
-<button onclick="toggleWardrobe()">Wardrobe</button>
-<button onclick="saveGame()">Save</button>
-<button onclick="exportGame()">Export</button>
-<button onclick="importGame()">Import</button>
-<button onclick="deleteGame()">Delete</button>
-
-<div class="panel">
-<h3>Shop</h3>
-<button id="clickUpgrade"></button>
-<button id="autoUpgrade"></button>
-<button id="critUpgrade"></button>
-</div>
-
-<div class="panel" id="wardrobePanel" style="display:none;"></div>
-
-<div class="panel">
-<h3>Achievements</h3>
-<div id="achievementList"></div>
-</div>
-
-</div>
-
-<script>
-
 // ================= STATE =================
 let game={
 username:"",
@@ -114,7 +14,8 @@ totalClicks:0
 
 let clickTimes=[];
 
-const forms = ["Normal","Cool","Top Hat","Crown"];
+const forms=["Normal","Cool","Top Hat","Crown"];
+const tiers=["None","Bronze I","Bronze II","Silver I","Silver II","Gold I","Gold II","Diamond I","Master I"];
 
 // ================= START =================
 function startGame(){
@@ -136,20 +37,16 @@ updateUI();
 // ================= CLICK =================
 document.getElementById("egg").onclick=function(){
 
-let value = game.clickValue * (1 + game.prestige * 0.1);
+let value=game.clickValue*(1+game.prestige*0.1);
 
-// Tier scaling bonus
-let tierBonus = 1 + (game.prestige * 0.2);
-value *= tierBonus;
+let tierBonus=1+(game.prestige*0.2);
+value*=tierBonus;
 
-// Form bonuses
-if(forms[game.form] === "Cool") value *= 1.2;
-if(forms[game.form] === "Top Hat") value *= 1.4;
-if(forms[game.form] === "Crown") value *= 1.7;
+if(forms[game.form]==="Cool") value*=1.2;
+if(forms[game.form]==="Top Hat") value*=1.4;
+if(forms[game.form]==="Crown") value*=1.7;
 
-if(Math.random()<game.critChance){
-value*=3;
-}
+if(Math.random()<game.critChance) value*=3;
 
 game.points+=Math.floor(value);
 game.totalClicks++;
@@ -163,7 +60,7 @@ checkAchievements();
 setInterval(()=>{
 let now=Date.now();
 clickTimes=clickTimes.filter(t=>now-t<1000);
-document.getElementById("cpsDisplay").innerText="CPS: "+clickTimes.length;
+document.getElementById("cps").innerText=clickTimes.length;
 },200);
 
 // ================= AUTO =================
@@ -174,14 +71,15 @@ updateUI();
 
 // ================= SHOP =================
 function setupShop(){
-
 let clickBtn=document.getElementById("clickUpgrade");
 let autoBtn=document.getElementById("autoUpgrade");
 let critBtn=document.getElementById("critUpgrade");
+let bgBtn=document.getElementById("bgUpgrade");
 
 clickBtn.innerText="Upgrade Click (+1) - 50";
 autoBtn.innerText="Auto Clicker (+1/sec) - 200";
 critBtn.innerText="Crit Chance (+1%) - 500";
+bgBtn.innerText="Change Background - 100";
 
 clickBtn.onclick=function(){
 if(game.points>=50){
@@ -206,6 +104,13 @@ game.critChance+=0.01;
 updateUI();
 }
 };
+
+bgBtn.onclick=function(){
+if(game.points>=100){
+game.points-=100;
+document.body.style.background="linear-gradient(135deg,#"+Math.floor(Math.random()*999999)+",#000)";
+}
+};
 }
 
 // ================= PRESTIGE =================
@@ -221,11 +126,6 @@ updateUI();
 }
 
 // ================= WARDROBE =================
-// ================= WARDROBE =================
-
-const forms = ["Normal","Cool","Top Hat","Crown"];
-const tiers = ["None","Bronze I","Bronze II","Silver I","Silver II","Gold I","Gold II","Diamond I","Master I"];
-
 function toggleWardrobe(){
 let panel=document.getElementById("wardrobePanel");
 panel.style.display=panel.style.display==="none"?"block":"none";
@@ -237,7 +137,6 @@ let panel=document.getElementById("wardrobePanel");
 panel.innerHTML="";
 
 for(let t=0;t<tiers.length;t++){
-
 if(t>game.prestige) continue;
 
 for(let f=0;f<forms.length;f++){
@@ -247,22 +146,18 @@ let owned=game.ownedSkins.includes(id);
 let price=(100*(f+1))*(t+1)*5;
 
 let btn=document.createElement("button");
-
-btn.innerText=tiers[t]+" "+forms[f]+
-(owned?" (Owned)":" - "+price);
+btn.innerText=tiers[t]+" "+forms[f]+(owned?" (Owned)":" - "+price);
 
 if(game.form===f && owned){
 btn.style.border="3px solid lime";
 }
 
 btn.onclick=function(){
-
 if(!owned){
 if(game.points<price)return;
 game.points-=price;
 game.ownedSkins.push(id);
 }
-
 game.form=f;
 updateUI();
 buildWardrobe();
@@ -274,37 +169,37 @@ panel.appendChild(btn);
 }
 
 // ================= ACHIEVEMENTS =================
-
-const achievements = [
-
-{ id:"c1", name:"First Crack", check:()=>game.totalClicks>=1 },
-{ id:"c50", name:"Shell Tapper", check:()=>game.totalClicks>=50 },
-{ id:"c100", name:"Egg Breaker", check:()=>game.totalClicks>=100 },
-{ id:"c500", name:"Yolk Puncher", check:()=>game.totalClicks>=500 },
-{ id:"c1000", name:"Shell Destroyer", check:()=>game.totalClicks>=1000 },
-{ id:"c5000", name:"Egg Obliterator", check:()=>game.totalClicks>=5000 },
-
-{ id:"p100", name:"100 Yolk", check:()=>game.points>=100 },
-{ id:"p1000", name:"1k Yolk", check:()=>game.points>=1000 },
-{ id:"p10000", name:"10k Yolk", check:()=>game.points>=10000 },
-{ id:"p100000", name:"100k Yolk", check:()=>game.points>=100000 },
-
-{ id:"auto10", name:"Auto x10", check:()=>game.autoValue>=10 },
-{ id:"auto50", name:"Auto x50", check:()=>game.autoValue>=50 },
-
-{ id:"crit10", name:"10% Crit", check:()=>game.critChance>=0.10 },
-{ id:"crit25", name:"25% Crit", check:()=>game.critChance>=0.25 },
-
-{ id:"prest1", name:"Bronze I", check:()=>game.prestige>=1 },
-{ id:"prest2", name:"Bronze II", check:()=>game.prestige>=2 },
-{ id:"prest3", name:"Silver I", check:()=>game.prestige>=3 },
-{ id:"prest4", name:"Silver II", check:()=>game.prestige>=4 },
-{ id:"prest5", name:"Gold I", check:()=>game.prestige>=5 },
-{ id:"prest6", name:"Gold II", check:()=>game.prestige>=6 },
-{ id:"prest7", name:"Diamond I", check:()=>game.prestige>=7 },
-{ id:"prest8", name:"Master I", check:()=>game.prestige>=8 }
-
+const achievements=[
+{id:"c1",name:"First Crack",check:()=>game.totalClicks>=1},
+{id:"c100",name:"Egg Breaker",check:()=>game.totalClicks>=100},
+{id:"c1000",name:"Shell Destroyer",check:()=>game.totalClicks>=1000},
+{id:"prest1",name:"Bronze I",check:()=>game.prestige>=1},
+{id:"prest5",name:"Gold I",check:()=>game.prestige>=5}
 ];
+
+function buildAchievements(){
+let list=document.getElementById("achievementList");
+list.innerHTML="";
+achievements.forEach(a=>{
+let div=document.createElement("div");
+div.className="achievement locked";
+div.id="ach-"+a.id;
+div.innerText=a.name;
+list.appendChild(div);
+});
+}
+
+function checkAchievements(){
+achievements.forEach(a=>{
+if(!game.achievements.includes(a.id)&&a.check()){
+game.achievements.push(a.id);
+let div=document.getElementById("ach-"+a.id);
+div.classList.remove("locked");
+div.style.background="gold";
+div.style.color="black";
+}
+});
+}
 
 // ================= SAVE =================
 function saveGame(){
@@ -340,9 +235,6 @@ location.reload();
 // ================= UI =================
 function updateUI(){
 document.getElementById("points").innerText=Math.floor(game.points);
+document.getElementById("rankDisplay").innerText="Rank: "+tiers[Math.min(game.prestige,tiers.length-1)];
+document.getElementById("prestigeBtn").innerText="Prestige ("+(10000*(game.prestige+1))+")";
 }
-
-</script>
-
-</body>
-</html>
