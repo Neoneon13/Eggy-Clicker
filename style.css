@@ -1,51 +1,69 @@
+/* =========================
+   EGGY CLICKER CLEAN WHITE UI
+   ========================= */
+
 body{
   font-family: Arial, sans-serif;
-  background: #ffffff;
-  color: black;
+  background:#ffffff;
+  color:#222;
+  margin:0;
+  padding:0;
+  text-align:center;
 }
 
-/* LOGIN SCREEN */
+/* ================= LOGIN ================= */
+
 #loginScreen{
-  margin-top:100px;
+  margin-top:120px;
 }
 
 .title{
   font-size:48px;
-  margin-bottom:20px;
-  text-shadow:0 0 15px gold;
+  margin-bottom:25px;
+  color:#f4b400;
+  text-shadow:0 0 15px rgba(255,193,7,0.4);
 }
 
 input{
-  padding:10px;
+  padding:12px;
   font-size:16px;
-  border-radius:5px;
-  border:none;
-  margin-bottom:10px;
+  border-radius:8px;
+  border:2px solid #ddd;
+  outline:none;
+  margin-bottom:15px;
+  width:220px;
 }
+
+input:focus{
+  border-color:#f4b400;
+}
+
+/* ================= BUTTONS ================= */
 
 button{
   padding:10px 15px;
-  margin:5px;
+  margin:6px;
   border:none;
-  border-radius:6px;
+  border-radius:8px;
   cursor:pointer;
   font-weight:bold;
-  transition:0.2s;
+  transition:0.2s ease;
 }
 
 button:hover{
   transform:scale(1.05);
 }
 
-/* COLORS */
+/* Colored buttons */
+
 .blue{
   background:#2196f3;
   color:white;
 }
 
 .orange{
-  background:orange;
-  color:black;
+  background:#ff9800;
+  color:white;
 }
 
 .red{
@@ -58,74 +76,115 @@ button:hover{
   color:white;
 }
 
-/* GAME */
+/* ================= GAME AREA ================= */
+
+#stats{
+  margin-top:15px;
+  font-size:18px;
+  font-weight:bold;
+}
+
 #eggContainer{
-  margin:30px 0;
+  margin:40px 0;
 }
 
 #egg{
   font-size:120px;
   cursor:pointer;
-  transition:0.1s;
+  transition:0.1s ease;
 }
 
 #egg:active{
   transform:scale(0.9);
 }
 
-.panel{
-  background:#f5f5f5;
-  color:black;
+/* ================= PANELS ================= */
 
-#stats{
-  margin-top:10px;
-  font-size:18px;
+.panel{
+  margin:25px auto;
+  padding:18px;
+  width:340px;
+  border-radius:14px;
+  background:#fafafa;
+  box-shadow:0 6px 20px rgba(0,0,0,0.08);
 }
 
+/* Shop panel override */
+.panel.blue{
+  background:#e3f2fd;
+  box-shadow:0 6px 20px rgba(33,150,243,0.15);
+}
+
+/* ================= WARDROBE ================= */
+
 #wardrobePanel{
-  background:#111;
-  padding:15px;
-  border-radius:10px;
-  margin:10px auto;
-  width:350px;
+  background:#f8f8f8;
+  padding:18px;
+  border-radius:14px;
+  margin:20px auto;
+  width:380px;
+  box-shadow:0 6px 20px rgba(0,0,0,0.08);
 }
 
 #wardrobePanel button{
   display:block;
   width:100%;
-  margin:5px 0;
+  margin:6px 0;
+  background:#ffffff;
+  border:2px solid #ddd;
+}
+
+#wardrobePanel button:hover{
+  border-color:#f4b400;
+}
+
+/* Equipped glow */
+.skinItem.equipped,
+#wardrobePanel button[style*="lime"]{
+  border:3px solid lime !important;
+}
+
+/* ================= ACHIEVEMENTS ================= */
+
+.achievement{
+  background:#eeeeee;
+  padding:8px;
+  margin:6px 0;
+  border-radius:8px;
+  font-size:14px;
+  transition:0.2s;
 }
 
 .locked{
   opacity:0.5;
-  background:#555 !important;
 }
+
+.unlocked{
+  background:#fff3cd;
+  border:1px solid #ffecb5;
+  color:#856404;
+}
+
+/* ================= NOTIFICATIONS ================= */
 
 #notification{
   position:fixed;
   top:20px;
   right:20px;
-  background:gold;
-  color:black;
-  padding:10px 15px;
-  border-radius:8px;
+  background:#fff3cd;
+  color:#856404;
+  padding:12px 18px;
+  border-radius:10px;
   display:none;
   font-weight:bold;
-  box-shadow:0 0 10px gold;
+  box-shadow:0 4px 15px rgba(0,0,0,0.15);
   z-index:1000;
 }
 
-.achievement{
-  background:#333;
-  padding:6px;
-  margin:4px 0;
-  border-radius:5px;
-  font-size:14px;
-}
+/* ================= RANK EFFECTS ================= */
 
-/* RANK EFFECTS */
 .masterGlow{
-  box-shadow:0 0 20px gold;
+  box-shadow:0 0 25px gold;
 }
 
 .diamondGlow{
@@ -133,34 +192,7 @@ button:hover{
 }
 
 @keyframes diamondPulse{
-  0%{box-shadow:0 0 5px cyan;}
-  50%{box-shadow:0 0 25px cyan;}
-  100%{box-shadow:0 0 5px cyan;}
-}
-
-.skinItem {
-  border: 2px solid #444;
-  padding: 10px;
-  margin: 5px;
-  cursor: pointer;
-  border-radius: 8px;
-  background: #1e1e1e;
-}
-
-.skinItem.equipped {
-  border: 3px solid lime;
-}
-
-#wardrobeItems {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 8px;
-}
-
-.masterGlow {
-  box-shadow: 0 0 30px purple;
-}
-
-.diamondGlow {
-  box-shadow: 0 0 25px cyan;
+  0%{box-shadow:0 0 5px #00e5ff;}
+  50%{box-shadow:0 0 25px #00e5ff;}
+  100%{box-shadow:0 0 5px #00e5ff;}
 }
