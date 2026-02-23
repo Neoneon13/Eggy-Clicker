@@ -1,198 +1,104 @@
-/* =========================
-   EGGY CLICKER CLEAN WHITE UI
-   ========================= */
-
 body{
-  font-family: Arial, sans-serif;
+  margin:0;
+  font-family:Arial;
   background:#ffffff;
   color:#222;
-  margin:0;
-  padding:0;
+  display:flex;
+  justify-content:center;
+}
+
+#app{
+  width:100%;
+  max-width:500px;
+  padding:20px;
   text-align:center;
 }
 
-/* ================= LOGIN ================= */
-
-#loginScreen{
-  margin-top:120px;
+.hidden{
+  display:none;
 }
 
 .title{
-  font-size:48px;
-  margin-bottom:25px;
+  font-size:42px;
+  margin-top:80px;
   color:#f4b400;
-  text-shadow:0 0 15px rgba(255,193,7,0.4);
 }
 
 input{
   padding:12px;
-  font-size:16px;
+  width:80%;
+  margin:15px 0;
   border-radius:8px;
   border:2px solid #ddd;
-  outline:none;
-  margin-bottom:15px;
-  width:220px;
 }
-
-input:focus{
-  border-color:#f4b400;
-}
-
-/* ================= BUTTONS ================= */
 
 button{
-  padding:10px 15px;
+  padding:10px 14px;
   margin:6px;
   border:none;
   border-radius:8px;
+  font-weight:bold;
   cursor:pointer;
-  font-weight:bold;
-  transition:0.2s ease;
 }
 
-button:hover{
-  transform:scale(1.05);
+.buttonRow{
+  display:flex;
+  flex-wrap:wrap;
+  justify-content:center;
 }
 
-/* Colored buttons */
+.blue{background:#2196f3;color:white;}
+.orange{background:#ff9800;color:white;}
+.red{background:#e53935;color:white;}
+.green{background:#4caf50;color:white;}
 
-.blue{
-  background:#2196f3;
-  color:white;
+.panel{
+  background:#f5f5f5;
+  padding:15px;
+  border-radius:12px;
+  margin:20px 0;
 }
 
-.orange{
-  background:#ff9800;
-  color:white;
-}
-
-.red{
-  background:#e53935;
-  color:white;
-}
-
-.green{
-  background:#4caf50;
-  color:white;
-}
-
-/* ================= GAME AREA ================= */
-
-#stats{
-  margin-top:15px;
-  font-size:18px;
-  font-weight:bold;
-}
-
-#eggContainer{
-  margin:40px 0;
+.topBar{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
 }
 
 #egg{
   font-size:120px;
   cursor:pointer;
-  transition:0.1s ease;
+  margin:30px 0;
+  transition:0.1s;
 }
 
 #egg:active{
   transform:scale(0.9);
 }
 
-/* ================= PANELS ================= */
-
-.panel{
-  margin:25px auto;
-  padding:18px;
-  width:340px;
-  border-radius:14px;
-  background:#fafafa;
-  box-shadow:0 6px 20px rgba(0,0,0,0.08);
-}
-
-/* Shop panel override */
-.panel.blue{
-  background:#e3f2fd;
-  box-shadow:0 6px 20px rgba(33,150,243,0.15);
-}
-
-/* ================= WARDROBE ================= */
-
-#wardrobePanel{
-  background:#f8f8f8;
-  padding:18px;
-  border-radius:14px;
-  margin:20px auto;
-  width:380px;
-  box-shadow:0 6px 20px rgba(0,0,0,0.08);
-}
-
 #wardrobePanel button{
   display:block;
   width:100%;
-  margin:6px 0;
-  background:#ffffff;
-  border:2px solid #ddd;
+  margin:5px 0;
 }
 
-#wardrobePanel button:hover{
-  border-color:#f4b400;
+.achievementGrid{
+  display:grid;
+  grid-template-columns:repeat(2,1fr);
+  gap:6px;
 }
-
-/* Equipped glow */
-.skinItem.equipped,
-#wardrobePanel button[style*="lime"]{
-  border:3px solid lime !important;
-}
-
-/* ================= ACHIEVEMENTS ================= */
 
 .achievement{
-  background:#eeeeee;
-  padding:8px;
-  margin:6px 0;
-  border-radius:8px;
-  font-size:14px;
-  transition:0.2s;
+  padding:6px;
+  background:#e0e0e0;
+  border-radius:6px;
+  font-size:13px;
 }
 
-.locked{
-  opacity:0.5;
-}
+.locked{opacity:0.4;}
+.unlocked{background:#fff3cd;}
 
-.unlocked{
-  background:#fff3cd;
-  border:1px solid #ffecb5;
-  color:#856404;
-}
-
-/* ================= NOTIFICATIONS ================= */
-
-#notification{
-  position:fixed;
-  top:20px;
-  right:20px;
-  background:#fff3cd;
-  color:#856404;
-  padding:12px 18px;
-  border-radius:10px;
-  display:none;
-  font-weight:bold;
-  box-shadow:0 4px 15px rgba(0,0,0,0.15);
-  z-index:1000;
-}
-
-/* ================= RANK EFFECTS ================= */
-
-.masterGlow{
-  box-shadow:0 0 25px gold;
-}
-
-.diamondGlow{
-  animation:diamondPulse 2s infinite;
-}
-
-@keyframes diamondPulse{
-  0%{box-shadow:0 0 5px #00e5ff;}
-  50%{box-shadow:0 0 25px #00e5ff;}
-  100%{box-shadow:0 0 5px #00e5ff;}
+@media(max-width:480px){
+  #app{padding:10px;}
+  .topBar{flex-direction:column;}
 }
