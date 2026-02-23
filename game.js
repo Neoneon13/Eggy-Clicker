@@ -76,6 +76,8 @@ document.getElementById("egg")?.addEventListener("click",()=>{
     if(game.critStreak>game.bestCritStreak)
       game.bestCritStreak=game.critStreak;
     showPopup("CRIT x3!");
+    document.body.classList.add("shake");
+setTimeout(()=>document.body.classList.remove("shake"),200);
   }else{
     game.critStreak=0;
   }
