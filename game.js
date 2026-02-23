@@ -326,6 +326,66 @@ function autoSave(){
 }
 
 function loadGame(){
-  const data=localStorage.getItem("eggySave");
-  if(!data) return alert("No save");
-  game
+  const data = localStorage.getItem("eggySave");
+  if(!data) return alert("No save found");
+
+  game = JSON.parse(data);
+
+  document.getElementById("playerName").innerText = game.username;
+  document.getElementById("loginScreen").classList.add("hidden");
+  document.getElementById("gameScreen").classList.remove("hidden");
+
+  init();
+}
+
+function exportGame(){
+  prompt("Copy Save:",
+    btoa(JSON.stringify(game)));
+}
+
+function importGame(){
+  const code = prompt("Paste Save:");
+  if(!code) return;
+
+  game = JSON.parse(atob(code));
+  saveGame();
+  loadGame();
+}
+
+function deleteGame(){
+  const confirmDelete = prompt("Type DELETE to confirm");
+  if(confirmDelete === "DELETE"){
+    localStorage.removeItem("eggySave");
+    location.reload();
+  }
+}
+
+// ---------------- POPUP ----------------
+
+function showPopup(text){
+  const div = document.createElement("div");
+  div.innerText = text;
+  div.style.position = "fixed";
+  div.style.top = "20px";
+  div.style.left = "50%";
+  div.style.transform = "translateX(-50%)";
+  div.style.background = "#222";
+  div.style.color = "#fff";
+  div.style.padding = "10px";
+  div.style.borderRadius = "8px";
+  document.body.appendChild(div);
+  setTimeout(()=>div.remove(),2000);
+}
+
+// ---------------- GOD MODE ----------------
+
+function activateGodMode(){
+  game.godMode = true;
+  showPopup("God Mode Activated");
+}
+
+// ---------------- EVENT ----------------
+
+function goToEvent(){
+  window.location.href = "event.html";
+}
