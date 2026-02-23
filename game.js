@@ -1,240 +1,335 @@
-// ================= STATE =================
-let game={
-username:"",
-points:0,
-clickValue:1,
-autoValue:0,
-critChance:0.05,
-prestige:0,
-ownedSkins:["0-0"],
-form:0,
-achievements:[],
-totalClicks:0
+// ===============================
+// 🥚 EGGY CLICKER MASTER ENGINE
+// Clean Stable Build
+// ===============================
+
+// ---------- CONSTANTS ----------
+
+const FORMS = ["Normal","Cool","Top Hat","Crown"];
+
+const PRESTIGE_TIERS = [
+  "None",
+  "Bronze","Bronze II",
+  "Silver","Silver II",
+  "Gold","Gold II",
+  "Diamond","Diamond II",
+  "Master I","Master II","Master III","Master IV","Master V",
+  "Master VI","Master VII","Master VIII","Master IX","Master X",
+  "Ultimate Master"
+];
+
+// ---------- GAME STATE ----------
+
+let game = {
+  username: "",
+  points: 0,
+  totalClicks: 0,
+  clickValue: 1,
+  autoValue: 0,
+  critChance: 0.05,
+  prestige: 0,
+  form: 0,
+  tierOwned: {}, // "tier-form": true
+  equipped: "0-0",
+  achievements: [],
+  cps: 0,
+  lastTick: Date.now(),
+  godMode: false
 };
 
-let clickTimes=[];
+// ---------- START ----------
 
-const forms=["Normal","Cool","Top Hat","Crown"];
-const tiers=["None","Bronze I","Bronze II","Silver I","Silver II","Gold I","Gold II","Diamond I","Master I"];
-
-// ================= START =================
 function startGame(){
-let name=document.getElementById("usernameInput").value.trim();
-if(!name){alert("Enter username");return;}
-game.username=name;
-document.getElementById("playerName").innerText="Player: "+name;
-document.getElementById("loginScreen").style.display="none";
-document.getElementById("gameScreen").style.display="block";
-init();
+  const name = document.getElementById("usernameInput").value.trim();
+  if(!name) return alert("Enter username");
+  game.username = name;
+  document.getElementById("playerName").innerText = name;
+  document.getElementById("loginScreen").classList.add("hidden");
+  document.getElementById("gameScreen").classList.remove("hidden");
+  init();
 }
 
 function init(){
-setupShop();
-buildAchievements();
-updateUI();
+  updateRank();
+  updateStats();
+  buildShop();
+  buildWardrobe();
+  buildAchievements();
+  setInterval(tick,1000);
+  setInterval(autoSave,30000);
 }
 
-// ================= CLICK =================
-document.getElementById("egg").onclick=function(){
+// ---------- CLICKING ----------
 
-let value=game.clickValue*(1+game.prestige*0.1);
+const egg = document.getElementById("egg");
+if(egg){
+  egg.addEventListener("click", ()=>{
 
-let tierBonus=1+(game.prestige*0.2);
-value*=tierBonus;
+    if(Math.random() < game.critChance){
+      addPoints(game.clickValue * 5);
+      showPopup("CRIT!");
+    } else {
+      addPoints(game.clickValue);
+    }
 
-if(forms[game.form]==="Cool") value*=1.2;
-if(forms[game.form]==="Top Hat") value*=1.4;
-if(forms[game.form]==="Crown") value*=1.7;
+    game.totalClicks++;
+    checkAchievements();
+  });
+}
 
-if(Math.random()<game.critChance) value*=3;
+function addPoints(amount){
+  if(game.godMode) amount *= 10;
+  game.points += amount;
+  updateStats();
+}
 
-game.points+=Math.floor(value);
-game.totalClicks++;
+function tick(){
+  game.points += game.autoValue;
+  game.cps = game.autoValue;
+  updateStats();
+}
 
-clickTimes.push(Date.now());
-updateUI();
-checkAchievements();
+// ---------- SHOP ----------
+
+function buildShop(){
+  document.getElementById("clickUpgrade").innerText =
+    "Upgrade Click (" + clickCost() + ")";
+
+  document.getElementById("autoUpgrade").innerText =
+    "Auto Click (" + autoCost() + ")";
+
+  document.getElementById("critUpgrade").innerText =
+    "Crit Chance (" + critCost() + ")";
+
+  document.getElementById("bgUpgrade").innerText =
+    "Background Boost (" + bgCost() + ")";
+}
+
+function clickCost(){ return 50 * game.clickValue; }
+function autoCost(){ return 100 * (game.autoValue+1); }
+function critCost(){ return 500 * (game.critChance*20); }
+function bgCost(){ return 1000; }
+
+document.getElementById("clickUpgrade").onclick = ()=>{
+  if(game.points >= clickCost()){
+    game.points -= clickCost();
+    game.clickValue++;
+    buildShop();
+  }
 };
 
-// ================= CPS =================
-setInterval(()=>{
-let now=Date.now();
-clickTimes=clickTimes.filter(t=>now-t<1000);
-document.getElementById("cps").innerText=clickTimes.length;
-},200);
-
-// ================= AUTO =================
-setInterval(()=>{
-game.points+=game.autoValue;
-updateUI();
-},1000);
-
-// ================= SHOP =================
-function setupShop(){
-let clickBtn=document.getElementById("clickUpgrade");
-let autoBtn=document.getElementById("autoUpgrade");
-let critBtn=document.getElementById("critUpgrade");
-let bgBtn=document.getElementById("bgUpgrade");
-
-clickBtn.innerText="Upgrade Click (+1) - 50";
-autoBtn.innerText="Auto Clicker (+1/sec) - 200";
-critBtn.innerText="Crit Chance (+1%) - 500";
-bgBtn.innerText="Change Background - 100";
-
-clickBtn.onclick=function(){
-if(game.points>=50){
-game.points-=50;
-game.clickValue++;
-updateUI();
-}
+document.getElementById("autoUpgrade").onclick = ()=>{
+  if(game.points >= autoCost()){
+    game.points -= autoCost();
+    game.autoValue++;
+    buildShop();
+  }
 };
 
-autoBtn.onclick=function(){
-if(game.points>=200){
-game.points-=200;
-game.autoValue++;
-updateUI();
-}
+document.getElementById("critUpgrade").onclick = ()=>{
+  if(game.points >= critCost()){
+    game.points -= critCost();
+    game.critChance += 0.01;
+    buildShop();
+  }
 };
 
-critBtn.onclick=function(){
-if(game.points>=500){
-game.points-=500;
-game.critChance+=0.01;
-updateUI();
-}
+document.getElementById("bgUpgrade").onclick = ()=>{
+  if(game.points >= bgCost()){
+    game.points -= bgCost();
+    document.body.style.background =
+      "hsl(" + Math.floor(Math.random()*360) + ",100%,95%)";
+  }
 };
 
-bgBtn.onclick=function(){
-if(game.points>=100){
-game.points-=100;
-document.body.style.background="linear-gradient(135deg,#"+Math.floor(Math.random()*999999)+",#000)";
-}
-};
-}
+// ---------- PRESTIGE ----------
 
-// ================= PRESTIGE =================
 function prestige(){
-let cost=10000*(game.prestige+1);
-if(game.points<cost){alert("Need "+cost);return;}
-game.prestige++;
-game.points=0;
-game.clickValue=1;
-game.autoValue=0;
-game.critChance=0.05;
-updateUI();
+  if(game.points < 10000) return alert("Need 10k");
+
+  game.points = 0;
+  game.clickValue = 1;
+  game.autoValue = 0;
+  game.critChance = 0.05;
+  game.prestige++;
+  game.equipped = game.prestige + "-0";
+
+  updateRank();
+  updateStats();
+  buildWardrobe();
 }
 
-// ================= WARDROBE =================
-function toggleWardrobe(){
-let panel=document.getElementById("wardrobePanel");
-panel.style.display=panel.style.display==="none"?"block":"none";
-buildWardrobe();
+function updateRank(){
+  document.getElementById("rankDisplay").innerText =
+    PRESTIGE_TIERS[game.prestige] || "Legend";
 }
+
+// ---------- WARDROBE ----------
 
 function buildWardrobe(){
-let panel=document.getElementById("wardrobePanel");
-panel.innerHTML="";
+  const panel = document.getElementById("wardrobePanel");
+  panel.innerHTML = "";
 
-for(let t=0;t<tiers.length;t++){
-if(t>game.prestige) continue;
+  PRESTIGE_TIERS.forEach((tierName,tierIndex)=>{
 
-for(let f=0;f<forms.length;f++){
+    FORMS.forEach((formName,formIndex)=>{
 
-let id=t+"-"+f;
-let owned=game.ownedSkins.includes(id);
-let price=(100*(f+1))*(t+1)*5;
+      const key = tierIndex+"-"+formIndex;
+      const btn = document.createElement("button");
 
-let btn=document.createElement("button");
-btn.innerText=tiers[t]+" "+forms[f]+(owned?" (Owned)":" - "+price);
+      const price = (tierIndex+1) * 1000 * (formIndex+1);
 
-if(game.form===f && owned){
-btn.style.border="3px solid lime";
+      btn.innerText =
+        tierName + " " + formName + " ("+price+")";
+
+      if(tierIndex > game.prestige){
+        btn.innerText += " [LOCKED]";
+        btn.disabled = true;
+      }
+
+      if(game.equipped === key){
+        btn.style.border = "3px solid green";
+      }
+
+      btn.onclick = ()=>{
+        if(game.points >= price){
+          game.points -= price;
+          game.tierOwned[key] = true;
+          game.equipped = key;
+          buildWardrobe();
+        }
+      };
+
+      panel.appendChild(btn);
+    });
+  });
 }
 
-btn.onclick=function(){
-if(!owned){
-if(game.points<price)return;
-game.points-=price;
-game.ownedSkins.push(id);
-}
-game.form=f;
-updateUI();
-buildWardrobe();
-};
-
-panel.appendChild(btn);
-}
-}
+function toggleWardrobe(){
+  document.getElementById("wardrobePanel").classList.toggle("hidden");
 }
 
-// ================= ACHIEVEMENTS =================
-const achievements=[
-{id:"c1",name:"First Crack",check:()=>game.totalClicks>=1},
-{id:"c100",name:"Egg Breaker",check:()=>game.totalClicks>=100},
-{id:"c1000",name:"Shell Destroyer",check:()=>game.totalClicks>=1000},
-{id:"prest1",name:"Bronze I",check:()=>game.prestige>=1},
-{id:"prest5",name:"Gold I",check:()=>game.prestige>=5}
+// ---------- ACHIEVEMENTS ----------
+
+const ACHIEVEMENTS = [
+  {name:"First Click", check:()=>game.totalClicks>=1},
+  {name:"100 Clicks", check:()=>game.totalClicks>=100},
+  {name:"1k Points", check:()=>game.points>=1000},
+  {name:"10k Points", check:()=>game.points>=10000},
+  {name:"100k Points", check:()=>game.points>=100000},
+  {name:"First Prestige", check:()=>game.prestige>=1},
+  {name:"Bronze II", check:()=>game.prestige>=2},
+  {name:"Silver Rank", check:()=>game.prestige>=3},
+  {name:"Gold Rank", check:()=>game.prestige>=5},
+  {name:"Diamond Rank", check:()=>game.prestige>=7},
+  {name:"Master I", check:()=>game.prestige>=9},
+  {name:"Ultimate Master", check:()=>game.prestige>=19}
 ];
 
 function buildAchievements(){
-let list=document.getElementById("achievementList");
-list.innerHTML="";
-achievements.forEach(a=>{
-let div=document.createElement("div");
-div.className="achievement locked";
-div.id="ach-"+a.id;
-div.innerText=a.name;
-list.appendChild(div);
-});
+  const list = document.getElementById("achievementList");
+  list.innerHTML = "";
+
+  ACHIEVEMENTS.forEach((a,i)=>{
+    const div = document.createElement("div");
+    div.className = "achievement locked";
+    div.innerText = a.name;
+
+    if(game.achievements.includes(i)){
+      div.className = "achievement unlocked";
+    }
+
+    list.appendChild(div);
+  });
 }
 
 function checkAchievements(){
-achievements.forEach(a=>{
-if(!game.achievements.includes(a.id)&&a.check()){
-game.achievements.push(a.id);
-let div=document.getElementById("ach-"+a.id);
-div.classList.remove("locked");
-div.style.background="gold";
-div.style.color="black";
-}
-});
+  ACHIEVEMENTS.forEach((a,i)=>{
+    if(!game.achievements.includes(i) && a.check()){
+      game.achievements.push(i);
+      showPopup("Achievement: "+a.name);
+      buildAchievements();
+    }
+  });
 }
 
-// ================= SAVE =================
+// ---------- POPUP ----------
+
+function showPopup(text){
+  const pop = document.createElement("div");
+  pop.innerText = text;
+  pop.style.position="fixed";
+  pop.style.top="20px";
+  pop.style.left="50%";
+  pop.style.transform="translateX(-50%)";
+  pop.style.background="#222";
+  pop.style.color="#fff";
+  pop.style.padding="10px";
+  pop.style.borderRadius="8px";
+  document.body.appendChild(pop);
+  setTimeout(()=>pop.remove(),2000);
+}
+
+// ---------- SAVE SYSTEM ----------
+
 function saveGame(){
-localStorage.setItem("eggySave",JSON.stringify(game));
+  localStorage.setItem("eggySave", JSON.stringify(game));
+  showPopup("Game Saved!");
+}
+
+function autoSave(){
+  saveGame();
 }
 
 function loadGame(){
-let data=localStorage.getItem("eggySave");
-if(!data){alert("No save");return;}
-game=JSON.parse(data);
-document.getElementById("playerName").innerText="Player: "+game.username;
-document.getElementById("loginScreen").style.display="none";
-document.getElementById("gameScreen").style.display="block";
-init();
+  const data = localStorage.getItem("eggySave");
+  if(!data) return alert("No save found");
+  game = JSON.parse(data);
+  document.getElementById("playerName").innerText = game.username;
+  document.getElementById("loginScreen").classList.add("hidden");
+  document.getElementById("gameScreen").classList.remove("hidden");
+  init();
 }
 
 function exportGame(){
-prompt("Copy this:",btoa(JSON.stringify(game)));
+  prompt("Copy this save:", btoa(JSON.stringify(game)));
 }
 
 function importGame(){
-let data=prompt("Paste save:");
-if(!data)return;
-game=JSON.parse(atob(data));
-init();
+  const code = prompt("Paste save:");
+  if(!code) return;
+  game = JSON.parse(atob(code));
+  saveGame();
+  loadGame();
 }
 
 function deleteGame(){
-localStorage.removeItem("eggySave");
-location.reload();
+  const confirmDelete = prompt("Type DELETE to confirm");
+  if(confirmDelete === "DELETE"){
+    localStorage.removeItem("eggySave");
+    location.reload();
+  }
 }
 
-// ================= UI =================
-function updateUI(){
-document.getElementById("points").innerText=Math.floor(game.points);
-document.getElementById("rankDisplay").innerText="Rank: "+tiers[Math.min(game.prestige,tiers.length-1)];
-document.getElementById("prestigeBtn").innerText="Prestige ("+(10000*(game.prestige+1))+")";
+// ---------- GOD MODE ----------
+
+function activateGodMode(){
+  game.godMode = true;
+  showPopup("God Mode Activated");
+}
+
+// ---------- STATS ----------
+
+function updateStats(){
+  document.getElementById("points").innerText =
+    Math.floor(game.points);
+
+  document.getElementById("cps").innerText =
+    game.cps;
+}
+
+// ---------- EVENT ----------
+
+function goToEvent(){
+  window.location.href = "event.html";
 }
