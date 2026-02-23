@@ -74,13 +74,8 @@ button:hover{
 }
 
 .panel{
-  margin:20px auto;
-  padding:15px;
-  width:320px;
-  border-radius:10px;
-  background:#222;
-  box-shadow:0 0 10px rgba(0,0,0,0.5);
-}
+  background:#f5f5f5;
+  color:black;
 
 #stats{
   margin-top:10px;
