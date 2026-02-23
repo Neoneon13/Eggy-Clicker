@@ -2,61 +2,70 @@
 <html>
 <head>
 <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Eggy Clicker</title>
 <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
-<div id="loginScreen">
-  <h1 class="title">🥚 EGGY CLICKER 🥚</h1>
-  <input id="usernameInput" placeholder="Enter Username">
-  <button onclick="startGame()">Start Game</button>
-  <button onclick="loadGame()">Load Save</button>
+<div id="app">
+
+  <div id="loginScreen">
+    <h1 class="title">🥚 EGGY CLICKER 🥚</h1>
+    <input id="usernameInput" placeholder="Enter Username">
+    <div class="buttonRow">
+      <button onclick="startGame()">Start Game</button>
+      <button onclick="loadGame()">Load Save</button>
+    </div>
+  </div>
+
+  <div id="gameScreen" class="hidden">
+
+    <div class="topBar">
+      <div>
+        <h2 id="playerName"></h2>
+        <h3 id="rankDisplay"></h3>
+      </div>
+      <div id="stats">
+        <div>Yolk: <span id="points">0</span></div>
+        <div>CPS: <span id="cps">0</span></div>
+      </div>
+    </div>
+
+    <div id="eggContainer">
+      <div id="egg">🥚</div>
+    </div>
+
+    <div class="panel blue">
+      <h3>Shop</h3>
+      <button id="clickUpgrade"></button>
+      <button id="autoUpgrade"></button>
+      <button id="critUpgrade"></button>
+      <button id="bgUpgrade"></button>
+    </div>
+
+    <div class="buttonRow">
+      <button id="prestigeBtn" class="orange" onclick="prestige()"></button>
+      <button class="blue" onclick="goToEvent()">Event</button>
+      <button onclick="toggleWardrobe()">Wardrobe</button>
+    </div>
+
+    <div id="wardrobePanel" class="panel hidden"></div>
+
+    <div class="panel">
+      <h3>Achievements</h3>
+      <div id="achievementList" class="achievementGrid"></div>
+    </div>
+
+    <div class="buttonRow">
+      <button onclick="saveGame()" class="green">Save</button>
+      <button onclick="exportGame()">Export</button>
+      <button onclick="importGame()">Import</button>
+      <button onclick="deleteGame()" class="red">Delete</button>
+    </div>
+
+  </div>
 </div>
-
-<div id="gameScreen" style="display:none;">
-
-  <h2 id="playerName"></h2>
-  <h3 id="rankDisplay"></h3>
-
-  <div id="stats">
-    <div>Yolk: <span id="points">0</span></div>
-    <div>CPS: <span id="cps">0</span></div>
-  </div>
-
-  <div id="eggContainer">
-    <div id="egg">🥚</div>
-  </div>
-
-  <div id="shop" class="panel blue">
-    <h3>Shop</h3>
-    <button id="clickUpgrade"></button>
-    <button id="autoUpgrade"></button>
-    <button id="critUpgrade"></button>
-    <button id="bgUpgrade"></button>
-  </div>
-
-  <button id="prestigeBtn" class="orange" onclick="prestige()"></button>
-
-  <button id="wardrobeBtn" class="red" onclick="toggleWardrobe()">Wardrobe</button>
-
-  <div id="wardrobePanel" style="display:none;"></div>
-
-  <div id="achievements" class="panel">
-    <h3>Achievements</h3>
-    <div id="achievementList"></div>
-  </div>
-
-  <button onclick="toggleEggMode()">Toggle Emoji/Image</button>
-
-  <button onclick="saveGame()" class="green">Save</button>
-  <button onclick="exportGame()">Export</button>
-  <button onclick="importGame()">Import</button>
-  <button onclick="deleteGame()" class="red">Delete</button>
-
-</div>
-
-<div id="notification"></div>
 
 <script src="game.js" defer></script>
 </body>
