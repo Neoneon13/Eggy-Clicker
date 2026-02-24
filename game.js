@@ -1,23 +1,20 @@
-// ==============================
-// 🥚 EGGY CLICKER CLEAN ENGINE
-// ==============================
-
 document.addEventListener("DOMContentLoaded", function () {
 
 let game = {
   username: "",
   yolk: 0,
+  totalClicks: 0,
   clickPower: 1,
+  autoPower: 0,
+  critChance: 0.05,
   prestige: 0
 };
 
-// ---------- START GAME ----------
+// ---------------- START ----------------
+
 window.startGame = function () {
   const input = document.getElementById("usernameInput");
-  if (!input.value.trim()) {
-    alert("Enter username");
-    return;
-  }
+  if (!input.value.trim()) return alert("Enter username");
 
   game.username = input.value.trim();
 
@@ -28,33 +25,96 @@ window.startGame = function () {
   updateUI();
 };
 
-// ---------- CLICK ----------
+// ---------------- CLICK ----------------
+
 const egg = document.getElementById("egg");
 
 egg.addEventListener("click", function () {
-  game.yolk += game.clickPower;
+
+  let value = game.clickPower;
+
+  if (Math.random() < game.critChance) {
+    value *= 3;
+  }
+
+  game.yolk += value;
+  game.totalClicks++;
   updateUI();
 });
 
-// ---------- PRESTIGE ----------
+// ---------------- AUTO CPS ----------------
+
+setInterval(function () {
+  if (game.autoPower > 0) {
+    game.yolk += game.autoPower;
+    updateUI();
+  }
+}, 1000);
+
+// ---------------- SHOP ----------------
+
+window.buyClickUpgrade = function () {
+  const cost = 50 * game.clickPower;
+
+  if (game.yolk < cost) return;
+
+  game.yolk -= cost;
+  game.clickPower++;
+  updateUI();
+};
+
+window.buyAutoUpgrade = function () {
+  const cost = 100 * (game.autoPower + 1);
+
+  if (game.yolk < cost) return;
+
+  game.yolk -= cost;
+  game.autoPower++;
+  updateUI();
+};
+
+window.buyCritUpgrade = function () {
+  const cost = 500;
+
+  if (game.yolk < cost) return;
+
+  game.yolk -= cost;
+  game.critChance += 0.01;
+  updateUI();
+};
+
+// ---------------- PRESTIGE ----------------
+
 window.prestige = function () {
-  if (game.yolk < 10000) {
-    alert("Need 10000 Yolk to Prestige");
+
+  const cost = 10000 * (game.prestige + 1);
+
+  if (game.yolk < cost) {
+    alert("Need " + cost + " Yolk");
     return;
   }
 
   game.yolk = 0;
   game.clickPower = 1;
-  game.prestige += 1;
+  game.autoPower = 0;
+  game.critChance = 0.05;
+  game.prestige++;
 
   updateUI();
 };
 
-// ---------- UPDATE UI ----------
+// ---------------- UI ----------------
+
 function updateUI() {
-  document.getElementById("points").innerText = game.yolk;
+
+  document.getElementById("points").innerText = Math.floor(game.yolk);
   document.getElementById("rankDisplay").innerText = "Prestige " + game.prestige;
-  document.getElementById("prestigeBtn").innerText = "Prestige (10000)";
+
+  document.getElementById("prestigeBtn").innerText =
+    "Prestige (" + (10000 * (game.prestige + 1)) + ")";
+
+  const cps = game.autoPower;
+  document.getElementById("cpsDisplay").innerText = "CPS: " + cps;
 }
 
 });
