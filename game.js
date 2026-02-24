@@ -12,10 +12,11 @@ let game = {
   maxCritStreak: 0,
   prestige: 0,
   background: "white",
-  achievements: []
+  achievements: [],
+  lastSave: Date.now()
 };
 
-// ---------- START ----------
+// ---------------- START ----------------
 
 window.startGame = function () {
   const input = document.getElementById("usernameInput");
@@ -28,15 +29,17 @@ window.startGame = function () {
   document.getElementById("gameScreen").classList.remove("hidden");
 
   loadSave();
+  applyOfflineEarnings();
   renderAchievements();
+  renderWardrobe();
   updateUI();
 };
 
-// ---------- CLICK ----------
+// ---------------- CLICK ----------------
 
 const egg = document.getElementById("egg");
 
-egg.addEventListener("click", function () {
+egg.addEventListener("click", function (e) {
 
   let value = game.clickPower;
   let crit = false;
@@ -58,21 +61,66 @@ egg.addEventListener("click", function () {
     game.critStreak = 0;
   }
 
+  showFloatingText("+" + value, e.clientX, e.clientY, crit);
+
   checkAchievements();
   updateUI();
 });
 
-// ---------- AUTO CPS ----------
+// ---------------- FLOATING TEXT ----------------
+
+function showFloatingText(text, x, y, crit) {
+  const div = document.createElement("div");
+  div.innerText = text;
+  div.style.position = "fixed";
+  div.style.left = x + "px";
+  div.style.top = y + "px";
+  div.style.fontWeight = "bold";
+  div.style.pointerEvents = "none";
+  div.style.color = crit ? "red" : "black";
+  div.style.transition = "all 1s ease-out";
+
+  document.body.appendChild(div);
+
+  setTimeout(() => {
+    div.style.top = (y - 50) + "px";
+    div.style.opacity = 0;
+  }, 10);
+
+  setTimeout(() => div.remove(), 1000);
+}
+
+// ---------------- AUTO CPS ----------------
 
 setInterval(function () {
   if (game.autoPower > 0) {
-    game.yolk += game.autoPower;
-    game.totalEarned += game.autoPower;
+    const gain = game.autoPower;
+    game.yolk += gain;
+    game.totalEarned += gain;
     updateUI();
   }
 }, 1000);
 
-// ---------- SHOP ----------
+// ---------------- OFFLINE EARNINGS (30 MIN CAP) ----------------
+
+function applyOfflineEarnings() {
+  const now = Date.now();
+  const diffSeconds = Math.floor((now - game.lastSave) / 1000);
+
+  const maxSeconds = 1800; // 30 min
+  const effectiveSeconds = Math.min(diffSeconds, maxSeconds);
+
+  const earnings = effectiveSeconds * game.autoPower;
+
+  if (earnings > 0) {
+    game.yolk += earnings;
+    alert("You earned " + earnings + " yolk while offline!");
+  }
+
+  game.lastSave = now;
+}
+
+// ---------------- SHOP ----------------
 
 window.buyClickUpgrade = function () {
   const cost = 50 * game.clickPower;
@@ -101,10 +149,9 @@ window.buyCritUpgrade = function () {
   updateUI();
 };
 
-// ---------- PRESTIGE ----------
+// ---------------- PRESTIGE ----------------
 
 window.prestige = function () {
-
   const cost = 10000 * (game.prestige + 1);
 
   if (game.yolk < cost) {
@@ -121,7 +168,7 @@ window.prestige = function () {
   updateUI();
 };
 
-// ---------- BACKGROUND ----------
+// ---------------- BACKGROUND ----------------
 
 window.changeBackground = function () {
   const hue = Math.floor(Math.random() * 360);
@@ -130,9 +177,10 @@ window.changeBackground = function () {
   game.background = color;
 };
 
-// ---------- SAVE SYSTEM ----------
+// ---------------- SAVE SYSTEM ----------------
 
 window.saveGame = function () {
+  game.lastSave = Date.now();
   localStorage.setItem("eggySave", JSON.stringify(game));
   alert("Game Saved!");
 };
@@ -142,90 +190,18 @@ function loadSave() {
   if (!data) return;
 
   const parsed = JSON.parse(data);
-
   if (parsed.username === game.username) {
     game = parsed;
     document.body.style.background = game.background;
   }
 }
 
-window.exportGame = function () {
-  const code = btoa(JSON.stringify(game));
-  prompt("Copy this save code:", code);
-};
-
-window.importGame = function () {
-  const code = prompt("Paste save code:");
-  if (!code) return;
-
-  try {
-    game = JSON.parse(atob(code));
-    localStorage.setItem("eggySave", JSON.stringify(game));
-    updateUI();
-    renderAchievements();
-    alert("Import successful!");
-  } catch {
-    alert("Invalid save code.");
-  }
-};
-
-window.deleteSave = function () {
-  if (confirm("Delete save permanently?")) {
-    localStorage.removeItem("eggySave");
-    location.reload();
-  }
-};
-
-// Auto save every 30 sec
 setInterval(function () {
+  game.lastSave = Date.now();
   localStorage.setItem("eggySave", JSON.stringify(game));
 }, 30000);
 
-// ---------- ACHIEVEMENTS ----------
-
-const achievementList = [];
-
-for (let i = 1; i <= 50; i++) {
-  achievementList.push({
-    id: "click" + i,
-    name: "Click Master " + i,
-    condition: () => game.totalClicks >= i * 100
-  });
-}
-
-achievementList.push(
-  { id:"crit3", name:"Lucky Crack", condition:()=>game.maxCritStreak>=3 },
-  { id:"crit5", name:"CRACK MASTER", condition:()=>game.maxCritStreak>=5 },
-  { id:"crit10", name:"CRIT LEGEND", condition:()=>game.maxCritStreak>=10 },
-  { id:"p1", name:"Reborn", condition:()=>game.prestige>=1 },
-  { id:"p5", name:"Ascended", condition:()=>game.prestige>=5 }
-);
-
-function checkAchievements(){
-  achievementList.forEach(a=>{
-    if(!game.achievements.includes(a.id) && a.condition()){
-      game.achievements.push(a.id);
-      alert("🏆 Achievement Unlocked: "+a.name);
-      renderAchievements();
-    }
-  });
-}
-
-function renderAchievements(){
-  const container=document.getElementById("achievementList");
-  if(!container) return;
-
-  container.innerHTML="";
-
-  achievementList.forEach(a=>{
-    const unlocked=game.achievements.includes(a.id);
-    const div=document.createElement("div");
-    div.innerText=unlocked? "✅ "+a.name : "🔒 Locked";
-    container.appendChild(div);
-  });
-}
-
-// ---------- UI ----------
+// ---------------- UI ----------------
 
 function updateUI(){
   document.getElementById("points").innerText = Math.floor(game.yolk);
@@ -237,92 +213,3 @@ function updateUI(){
 }
 
 });
-
-// =======================
-// 🥚 WARDROBE MASTER SYSTEM
-// =======================
-
-let wardrobe = {
-  owned: ["Normal"],
-  equipped: "Normal"
-};
-
-const eggForms = [
-  { name: "Normal", bonus: 0, price: 0, prestige: 0 },
-  { name: "Cool", bonus: 1, price: 500, prestige: 0 },
-  { name: "Top Hat", bonus: 2, price: 2000, prestige: 1 },
-  { name: "Crown", bonus: 3, price: 5000, prestige: 2 },
-
-  { name: "Bronze Normal", bonus: 5, price: 10000, prestige: 1 },
-  { name: "Silver Normal", bonus: 10, price: 25000, prestige: 2 },
-  { name: "Gold Normal", bonus: 20, price: 50000, prestige: 3 },
-  { name: "Diamond Normal", bonus: 40, price: 100000, prestige: 5 }
-];
-
-function renderWardrobe() {
-
-  const container = document.getElementById("wardrobeList");
-  if (!container) return;
-
-  container.innerHTML = "";
-
-  eggForms.forEach(form => {
-
-    const div = document.createElement("div");
-    div.style.padding = "8px";
-    div.style.margin = "5px";
-    div.style.border = "2px solid gray";
-    div.style.cursor = "pointer";
-
-    const owned = wardrobe.owned.includes(form.name);
-
-    if (wardrobe.equipped === form.name) {
-      div.style.border = "3px solid green";
-    }
-
-    if (!owned) {
-      if (game.prestige < form.prestige) {
-        div.innerText = "🔒 " + form.name + " (Prestige " + form.prestige + ")";
-      } else {
-        div.innerText = form.name + " - " + form.price + " Yolk";
-        div.onclick = function () { buyEgg(form); };
-      }
-    } else {
-      div.innerText = "🥚 " + form.name + " (Owned)";
-      div.onclick = function () { equipEgg(form); };
-    }
-
-    container.appendChild(div);
-  });
-}
-
-function buyEgg(form) {
-  if (game.yolk < form.price) return alert("Not enough yolk!");
-  game.yolk -= form.price;
-  wardrobe.owned.push(form.name);
-  updateUI();
-  renderWardrobe();
-}
-
-function equipEgg(form) {
-  wardrobe.equipped = form.name;
-  game.clickPower = 1 + form.bonus;
-  renderWardrobe();
-  updateUI();
-}
-
-// Save wardrobe
-setInterval(function () {
-  localStorage.setItem("eggyWardrobe", JSON.stringify(wardrobe));
-}, 30000);
-
-function loadWardrobe() {
-  const data = localStorage.getItem("eggyWardrobe");
-  if (data) wardrobe = JSON.parse(data);
-}
-
-// Run after load
-setTimeout(function(){
-  loadWardrobe();
-  renderWardrobe();
-},1000);
