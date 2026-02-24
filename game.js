@@ -17,7 +17,44 @@ let game = {
 
 // ================= PRESTIGE TIERS =================
 
+function toRoman(num) {
+  const roman = [
+    ["M",1000],["CM",900],["D",500],["CD",400],
+    ["C",100],["XC",90],["L",50],["XL",40],
+    ["X",10],["IX",9],["V",5],["IV",4],["I",1]
+  ];
+
+  let result = "";
+  for (let [letter,value] of roman) {
+    while (num >= value) {
+      result += letter;
+      num -= value;
+    }
+  }
+  return result;
+}
+
 function getPrestigeName(level) {
+
+  if (level === 0) return "None";
+
+  if (level <= 2)
+    return "Bronze " + toRoman(level);
+
+  if (level <= 4)
+    return "Silver " + toRoman(level - 2);
+
+  if (level <= 6)
+    return "Gold " + toRoman(level - 4);
+
+  if (level <= 8)
+    return "Diamond " + toRoman(level - 6);
+
+  if (level <= 18)
+    return "Master " + toRoman(level - 8);
+
+  return "Ultimate Master " + toRoman(level - 18);
+}
 
   if (level === 0) return "None";
 
