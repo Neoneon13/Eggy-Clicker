@@ -16,6 +16,8 @@ let game = {
   lastSave: Date.now()
 };
 
+let lastYolkCheck = 0;
+
 // ---------------- START ----------------
 
 window.startGame = function () {
@@ -30,8 +32,6 @@ window.startGame = function () {
 
   loadSave();
   applyOfflineEarnings();
-  renderAchievements();
-  renderWardrobe();
   updateUI();
 };
 
@@ -49,8 +49,7 @@ egg.addEventListener("click", function (e) {
     crit = true;
   }
 
-  game.yolk += value;
-  game.totalEarned += value;
+  addYolk(value);
   game.totalClicks++;
 
   if (crit) {
@@ -63,9 +62,83 @@ egg.addEventListener("click", function (e) {
 
   showFloatingText("+" + value, e.clientX, e.clientY, crit);
 
-  checkAchievements();
   updateUI();
 });
+
+// ---------------- SAFE YOLK ADD ----------------
+
+function addYolk(amount) {
+
+  if (amount < 0) return;
+
+  const maxGain = game.clickPower * 10 + game.autoPower * 5;
+
+  if (amount > maxGain) {
+    console.warn("Cheat detected: impossible gain");
+    return;
+  }
+
+  game.yolk += amount;
+  game.totalEarned += amount;
+
+  antiCheatCheck();
+}
+
+// ---------------- AUTO CPS ----------------
+
+setInterval(function () {
+  if (game.autoPower > 0) {
+    addYolk(game.autoPower);
+  }
+}, 1000);
+
+// ---------------- OFFLINE EARNINGS ----------------
+
+function applyOfflineEarnings() {
+  const now = Date.now();
+  const diffSeconds = Math.floor((now - game.lastSave) / 1000);
+
+  if (diffSeconds < 0) {
+    console.warn("Time manipulation detected");
+    game.lastSave = now;
+    return;
+  }
+
+  const maxSeconds = 1800;
+  const effectiveSeconds = Math.min(diffSeconds, maxSeconds);
+  const earnings = effectiveSeconds * game.autoPower;
+
+  if (earnings > 0) {
+    game.yolk += earnings;
+    alert("Offline earnings: " + earnings);
+  }
+
+  game.lastSave = now;
+}
+
+// ---------------- ANTI CHEAT ----------------
+
+function antiCheatCheck() {
+
+  if (game.yolk < 0) {
+    console.warn("Negative yolk detected");
+    game.yolk = 0;
+  }
+
+  const maxReasonable =
+    game.totalClicks * (game.clickPower * 5) +
+    (game.autoPower * 1800);
+
+  if (game.yolk > maxReasonable * 5) {
+    console.warn("Massive cheat detected");
+    game.yolk = Math.floor(maxReasonable);
+  }
+
+  lastYolkCheck = game.yolk;
+}
+
+// Monitor every 5 seconds
+setInterval(antiCheatCheck, 5000);
 
 // ---------------- FLOATING TEXT ----------------
 
@@ -88,36 +161,6 @@ function showFloatingText(text, x, y, crit) {
   }, 10);
 
   setTimeout(() => div.remove(), 1000);
-}
-
-// ---------------- AUTO CPS ----------------
-
-setInterval(function () {
-  if (game.autoPower > 0) {
-    const gain = game.autoPower;
-    game.yolk += gain;
-    game.totalEarned += gain;
-    updateUI();
-  }
-}, 1000);
-
-// ---------------- OFFLINE EARNINGS (30 MIN CAP) ----------------
-
-function applyOfflineEarnings() {
-  const now = Date.now();
-  const diffSeconds = Math.floor((now - game.lastSave) / 1000);
-
-  const maxSeconds = 1800; // 30 min
-  const effectiveSeconds = Math.min(diffSeconds, maxSeconds);
-
-  const earnings = effectiveSeconds * game.autoPower;
-
-  if (earnings > 0) {
-    game.yolk += earnings;
-    alert("You earned " + earnings + " yolk while offline!");
-  }
-
-  game.lastSave = now;
 }
 
 // ---------------- SHOP ----------------
@@ -155,7 +198,7 @@ window.prestige = function () {
   const cost = 10000 * (game.prestige + 1);
 
   if (game.yolk < cost) {
-    alert("Need " + cost + " Yolk");
+    alert("Need " + cost);
     return;
   }
 
@@ -177,12 +220,12 @@ window.changeBackground = function () {
   game.background = color;
 };
 
-// ---------------- SAVE SYSTEM ----------------
+// ---------------- SAVE ----------------
 
 window.saveGame = function () {
   game.lastSave = Date.now();
   localStorage.setItem("eggySave", JSON.stringify(game));
-  alert("Game Saved!");
+  alert("Saved!");
 };
 
 function loadSave() {
