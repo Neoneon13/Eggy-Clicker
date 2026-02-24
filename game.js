@@ -12,13 +12,42 @@ let game = {
   maxCritStreak: 0,
   prestige: 0,
   background: "white",
-  achievements: [],
   lastSave: Date.now()
 };
 
-let lastYolkCheck = 0;
+// ================= PRESTIGE TIERS =================
 
-// ---------------- START ----------------
+function getPrestigeName(level) {
+
+  if (level === 0) return "None";
+
+  const tiers = [
+    "Bronze",
+    "Silver",
+    "Gold",
+    "Diamond"
+  ];
+
+  // Bronze I & II
+  if (level <= 2) return "Bronze " + (level);
+
+  // Silver I & II
+  if (level <= 4) return "Silver " + (level - 2);
+
+  // Gold I & II
+  if (level <= 6) return "Gold " + (level - 4);
+
+  // Diamond I & II
+  if (level <= 8) return "Diamond " + (level - 6);
+
+  // Master I - X
+  if (level <= 18) return "Master " + (level - 8);
+
+  // Ultimate Master
+  return "Ultimate Master " + (level - 18);
+}
+
+// ================= START =================
 
 window.startGame = function () {
   const input = document.getElementById("usernameInput");
@@ -35,7 +64,7 @@ window.startGame = function () {
   updateUI();
 };
 
-// ---------------- CLICK ----------------
+// ================= CLICK =================
 
 const egg = document.getElementById("egg");
 
@@ -52,39 +81,27 @@ egg.addEventListener("click", function (e) {
   addYolk(value);
   game.totalClicks++;
 
-  if (crit) {
-    game.critStreak++;
-    if (game.critStreak > game.maxCritStreak)
-      game.maxCritStreak = game.critStreak;
-  } else {
-    game.critStreak = 0;
-  }
-
   showFloatingText("+" + value, e.clientX, e.clientY, crit);
 
   updateUI();
 });
 
-// ---------------- SAFE YOLK ADD ----------------
+// ================= SAFE ADD =================
 
 function addYolk(amount) {
-
   if (amount < 0) return;
 
   const maxGain = game.clickPower * 10 + game.autoPower * 5;
 
-  if (amount > maxGain) {
-    console.warn("Cheat detected: impossible gain");
-    return;
-  }
+  if (amount > maxGain) return;
 
   game.yolk += amount;
   game.totalEarned += amount;
 
-  antiCheatCheck();
+  antiCheat();
 }
 
-// ---------------- AUTO CPS ----------------
+// ================= AUTO =================
 
 setInterval(function () {
   if (game.autoPower > 0) {
@@ -92,55 +109,43 @@ setInterval(function () {
   }
 }, 1000);
 
-// ---------------- OFFLINE EARNINGS ----------------
+// ================= OFFLINE =================
 
 function applyOfflineEarnings() {
   const now = Date.now();
-  const diffSeconds = Math.floor((now - game.lastSave) / 1000);
+  const diff = Math.floor((now - game.lastSave) / 1000);
 
-  if (diffSeconds < 0) {
-    console.warn("Time manipulation detected");
+  if (diff < 0) {
     game.lastSave = now;
     return;
   }
 
-  const maxSeconds = 1800;
-  const effectiveSeconds = Math.min(diffSeconds, maxSeconds);
-  const earnings = effectiveSeconds * game.autoPower;
+  const capped = Math.min(diff, 1800);
+  const gain = capped * game.autoPower;
 
-  if (earnings > 0) {
-    game.yolk += earnings;
-    alert("Offline earnings: " + earnings);
+  if (gain > 0) {
+    game.yolk += gain;
+    alert("Offline earnings: " + gain);
   }
 
   game.lastSave = now;
 }
 
-// ---------------- ANTI CHEAT ----------------
+// ================= ANTI CHEAT =================
 
-function antiCheatCheck() {
+function antiCheat() {
+  if (game.yolk < 0) game.yolk = 0;
 
-  if (game.yolk < 0) {
-    console.warn("Negative yolk detected");
-    game.yolk = 0;
-  }
-
-  const maxReasonable =
+  const maxPossible =
     game.totalClicks * (game.clickPower * 5) +
     (game.autoPower * 1800);
 
-  if (game.yolk > maxReasonable * 5) {
-    console.warn("Massive cheat detected");
-    game.yolk = Math.floor(maxReasonable);
+  if (game.yolk > maxPossible * 5) {
+    game.yolk = Math.floor(maxPossible);
   }
-
-  lastYolkCheck = game.yolk;
 }
 
-// Monitor every 5 seconds
-setInterval(antiCheatCheck, 5000);
-
-// ---------------- FLOATING TEXT ----------------
+// ================= FLOATING =================
 
 function showFloatingText(text, x, y, crit) {
   const div = document.createElement("div");
@@ -163,12 +168,11 @@ function showFloatingText(text, x, y, crit) {
   setTimeout(() => div.remove(), 1000);
 }
 
-// ---------------- SHOP ----------------
+// ================= SHOP =================
 
 window.buyClickUpgrade = function () {
   const cost = 50 * game.clickPower;
   if (game.yolk < cost) return;
-
   game.yolk -= cost;
   game.clickPower++;
   updateUI();
@@ -177,7 +181,6 @@ window.buyClickUpgrade = function () {
 window.buyAutoUpgrade = function () {
   const cost = 100 * (game.autoPower + 1);
   if (game.yolk < cost) return;
-
   game.yolk -= cost;
   game.autoPower++;
   updateUI();
@@ -186,19 +189,19 @@ window.buyAutoUpgrade = function () {
 window.buyCritUpgrade = function () {
   const cost = 500;
   if (game.yolk < cost) return;
-
   game.yolk -= cost;
   game.critChance += 0.01;
   updateUI();
 };
 
-// ---------------- PRESTIGE ----------------
+// ================= PRESTIGE =================
 
 window.prestige = function () {
+
   const cost = 10000 * (game.prestige + 1);
 
   if (game.yolk < cost) {
-    alert("Need " + cost);
+    alert("Need " + cost + " Yolk");
     return;
   }
 
@@ -211,7 +214,7 @@ window.prestige = function () {
   updateUI();
 };
 
-// ---------------- BACKGROUND ----------------
+// ================= BACKGROUND =================
 
 window.changeBackground = function () {
   const hue = Math.floor(Math.random() * 360);
@@ -220,7 +223,7 @@ window.changeBackground = function () {
   game.background = color;
 };
 
-// ---------------- SAVE ----------------
+// ================= SAVE =================
 
 window.saveGame = function () {
   game.lastSave = Date.now();
@@ -231,12 +234,8 @@ window.saveGame = function () {
 function loadSave() {
   const data = localStorage.getItem("eggySave");
   if (!data) return;
-
-  const parsed = JSON.parse(data);
-  if (parsed.username === game.username) {
-    game = parsed;
-    document.body.style.background = game.background;
-  }
+  game = JSON.parse(data);
+  document.body.style.background = game.background;
 }
 
 setInterval(function () {
@@ -244,11 +243,12 @@ setInterval(function () {
   localStorage.setItem("eggySave", JSON.stringify(game));
 }, 30000);
 
-// ---------------- UI ----------------
+// ================= UI =================
 
 function updateUI(){
   document.getElementById("points").innerText = Math.floor(game.yolk);
-  document.getElementById("rankDisplay").innerText = "Prestige " + game.prestige;
+  document.getElementById("rankDisplay").innerText =
+    getPrestigeName(game.prestige);
   document.getElementById("prestigeBtn").innerText =
     "Prestige (" + (10000 * (game.prestige + 1)) + ")";
   document.getElementById("cpsDisplay").innerText =
