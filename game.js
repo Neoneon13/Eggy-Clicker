@@ -237,3 +237,92 @@ function updateUI(){
 }
 
 });
+
+// =======================
+// 🥚 WARDROBE MASTER SYSTEM
+// =======================
+
+let wardrobe = {
+  owned: ["Normal"],
+  equipped: "Normal"
+};
+
+const eggForms = [
+  { name: "Normal", bonus: 0, price: 0, prestige: 0 },
+  { name: "Cool", bonus: 1, price: 500, prestige: 0 },
+  { name: "Top Hat", bonus: 2, price: 2000, prestige: 1 },
+  { name: "Crown", bonus: 3, price: 5000, prestige: 2 },
+
+  { name: "Bronze Normal", bonus: 5, price: 10000, prestige: 1 },
+  { name: "Silver Normal", bonus: 10, price: 25000, prestige: 2 },
+  { name: "Gold Normal", bonus: 20, price: 50000, prestige: 3 },
+  { name: "Diamond Normal", bonus: 40, price: 100000, prestige: 5 }
+];
+
+function renderWardrobe() {
+
+  const container = document.getElementById("wardrobeList");
+  if (!container) return;
+
+  container.innerHTML = "";
+
+  eggForms.forEach(form => {
+
+    const div = document.createElement("div");
+    div.style.padding = "8px";
+    div.style.margin = "5px";
+    div.style.border = "2px solid gray";
+    div.style.cursor = "pointer";
+
+    const owned = wardrobe.owned.includes(form.name);
+
+    if (wardrobe.equipped === form.name) {
+      div.style.border = "3px solid green";
+    }
+
+    if (!owned) {
+      if (game.prestige < form.prestige) {
+        div.innerText = "🔒 " + form.name + " (Prestige " + form.prestige + ")";
+      } else {
+        div.innerText = form.name + " - " + form.price + " Yolk";
+        div.onclick = function () { buyEgg(form); };
+      }
+    } else {
+      div.innerText = "🥚 " + form.name + " (Owned)";
+      div.onclick = function () { equipEgg(form); };
+    }
+
+    container.appendChild(div);
+  });
+}
+
+function buyEgg(form) {
+  if (game.yolk < form.price) return alert("Not enough yolk!");
+  game.yolk -= form.price;
+  wardrobe.owned.push(form.name);
+  updateUI();
+  renderWardrobe();
+}
+
+function equipEgg(form) {
+  wardrobe.equipped = form.name;
+  game.clickPower = 1 + form.bonus;
+  renderWardrobe();
+  updateUI();
+}
+
+// Save wardrobe
+setInterval(function () {
+  localStorage.setItem("eggyWardrobe", JSON.stringify(wardrobe));
+}, 30000);
+
+function loadWardrobe() {
+  const data = localStorage.getItem("eggyWardrobe");
+  if (data) wardrobe = JSON.parse(data);
+}
+
+// Run after load
+setTimeout(function(){
+  loadWardrobe();
+  renderWardrobe();
+},1000);
