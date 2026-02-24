@@ -2,6 +2,8 @@
 // 🥚 EGGY CLICKER SAFE ENGINE
 // ===============================
 
+alert("JS IS LOADING");
+
 window.addEventListener("DOMContentLoaded", () => {
 
 const FORMS = [
