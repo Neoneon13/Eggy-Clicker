@@ -7,7 +7,8 @@ let game = {
   clickPower: 1,
   autoPower: 0,
   critChance: 0.05,
-  prestige: 0
+  prestige: 0,
+  background: "white"
 };
 
 // ---------------- START ----------------
@@ -22,6 +23,7 @@ window.startGame = function () {
   document.getElementById("loginScreen").classList.add("hidden");
   document.getElementById("gameScreen").classList.remove("hidden");
 
+  loadSave(); // load if exists
   updateUI();
 };
 
@@ -39,6 +41,7 @@ egg.addEventListener("click", function () {
 
   game.yolk += value;
   game.totalClicks++;
+
   updateUI();
 });
 
@@ -55,7 +58,6 @@ setInterval(function () {
 
 window.buyClickUpgrade = function () {
   const cost = 50 * game.clickPower;
-
   if (game.yolk < cost) return;
 
   game.yolk -= cost;
@@ -65,7 +67,6 @@ window.buyClickUpgrade = function () {
 
 window.buyAutoUpgrade = function () {
   const cost = 100 * (game.autoPower + 1);
-
   if (game.yolk < cost) return;
 
   game.yolk -= cost;
@@ -75,7 +76,6 @@ window.buyAutoUpgrade = function () {
 
 window.buyCritUpgrade = function () {
   const cost = 500;
-
   if (game.yolk < cost) return;
 
   game.yolk -= cost;
@@ -103,6 +103,66 @@ window.prestige = function () {
   updateUI();
 };
 
+// ---------------- BACKGROUND ----------------
+
+window.changeBackground = function () {
+  const hue = Math.floor(Math.random() * 360);
+  const color = "hsl(" + hue + ", 80%, 95%)";
+
+  document.body.style.background = color;
+  game.background = color;
+};
+
+// ---------------- SAVE SYSTEM ----------------
+
+window.saveGame = function () {
+  localStorage.setItem("eggySave", JSON.stringify(game));
+  alert("Game Saved!");
+};
+
+function loadSave() {
+  const data = localStorage.getItem("eggySave");
+  if (!data) return;
+
+  const parsed = JSON.parse(data);
+
+  if (parsed.username === game.username) {
+    game = parsed;
+    document.body.style.background = game.background;
+  }
+}
+
+window.exportGame = function () {
+  const code = btoa(JSON.stringify(game));
+  prompt("Copy this save code:", code);
+};
+
+window.importGame = function () {
+  const code = prompt("Paste save code:");
+  if (!code) return;
+
+  try {
+    game = JSON.parse(atob(code));
+    localStorage.setItem("eggySave", JSON.stringify(game));
+    updateUI();
+    alert("Import successful!");
+  } catch {
+    alert("Invalid save code.");
+  }
+};
+
+window.deleteSave = function () {
+  if (confirm("Delete save permanently?")) {
+    localStorage.removeItem("eggySave");
+    location.reload();
+  }
+};
+
+// Auto Save every 30 seconds
+setInterval(function () {
+  localStorage.setItem("eggySave", JSON.stringify(game));
+}, 30000);
+
 // ---------------- UI ----------------
 
 function updateUI() {
@@ -113,8 +173,8 @@ function updateUI() {
   document.getElementById("prestigeBtn").innerText =
     "Prestige (" + (10000 * (game.prestige + 1)) + ")";
 
-  const cps = game.autoPower;
-  document.getElementById("cpsDisplay").innerText = "CPS: " + cps;
+  document.getElementById("cpsDisplay").innerText =
+    "CPS: " + game.autoPower;
 }
 
 });
