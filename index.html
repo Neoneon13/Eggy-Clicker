@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -10,49 +10,75 @@
 
 <div id="app">
 
-  <h1>🥚 Eggy Clicker 🥚</h1>
+  <!-- HEADER -->
+  <header>
+    <h1>🥚 Eggy Clicker 🥚</h1>
+    <div id="rankDisplay">Rank: None</div>
+  </header>
 
-  <h3 id="rankDisplay">Rank: None</h3>
-
-  <div id="stats">
+  <!-- STATS -->
+  <section id="stats">
     <div>Yolk: <span id="points">0</span></div>
     <div>CPS: <span id="cps">0</span></div>
-  </div>
+  </section>
 
-  <div id="eggContainer">
+  <!-- EGG -->
+  <section id="eggSection">
     <div id="egg">🥚</div>
-  </div>
+  </section>
 
-  <div class="panel blue">
-    <h3>Shop</h3>
-    <button id="clickUpgrade">Upgrade Click</button>
-    <button id="autoUpgrade">Auto Clicker</button>
-    <button id="critUpgrade">Crit Chance</button>
-  </div>
+  <!-- SHOP -->
+  <section class="panel" id="shopPanel">
+    <h2>Shop</h2>
+    <button id="clickUpgrade"></button>
+    <button id="autoUpgrade"></button>
+    <button id="critUpgrade"></button>
+  </section>
 
-  <div class="panel orange">
-    <h3>Prestige</h3>
-    <button id="prestigeBtn">Prestige</button>
-  </div>
+  <!-- PRESTIGE -->
+  <section class="panel" id="prestigePanel">
+    <h2>Prestige</h2>
+    <button id="prestigeBtn" class="orange"></button>
+  </section>
 
-  <div class="panel">
-    <h3>Wardrobe</h3>
-    <button id="wardrobeToggle">Open Wardrobe</button>
-    <div id="wardrobePanel" class="hidden"></div>
-  </div>
+  <!-- MAIN BUTTONS -->
+  <section class="buttonRow">
+    <button id="wardrobeToggle">Wardrobe</button>
+    <button id="eventBtn" class="blue">Events</button>
+  </section>
 
-  <div class="panel">
-    <h3>Achievements</h3>
+  <!-- WARDROBE PANEL -->
+  <section class="panel hidden" id="wardrobePanel">
+    <h2>Wardrobe</h2>
+    <div id="wardrobeList"></div>
+  </section>
+
+  <!-- ACHIEVEMENTS -->
+  <section class="panel" id="achievementPanel">
+    <h2>Achievements</h2>
     <div id="achievementList"></div>
-  </div>
+  </section>
 
-  <div class="panel">
-    <button id="saveBtn" class="green">Save</button>
-    <button id="deleteBtn" class="red">Delete</button>
-  </div>
+  <!-- SAVE CONTROLS -->
+  <section class="panel">
+    <div class="buttonRow">
+      <button id="saveBtn" class="green">Save</button>
+      <button id="exportBtn">Export</button>
+      <button id="importBtn">Import</button>
+      <button id="deleteBtn" class="red">Delete</button>
+    </div>
+  </section>
 
 </div>
 
-<script src="game.js"></script>
+<!-- JAVASCRIPT FILES (ORDER MATTERS) -->
+<script src="js/core.js"></script>
+<script src="js/shop.js"></script>
+<script src="js/prestige.js"></script>
+<script src="js/wardrobe.js"></script>
+<script src="js/achievements.js"></script>
+<script src="js/save.js"></script>
+<script src="js/events.js"></script>
+
 </body>
 </html>
