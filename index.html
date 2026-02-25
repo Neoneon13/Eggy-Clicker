@@ -1,106 +1,58 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>Eggy Clicker 🥚</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-  <style>
-    body {
-      margin: 0;
-      font-family: Arial, sans-serif;
-      background: white;
-      text-align: center;
-    }
-
-    .hidden {
-      display: none;
-    }
-
-    button {
-      padding: 10px 15px;
-      margin: 5px;
-      font-size: 16px;
-      cursor: pointer;
-    }
-
-    #egg {
-      font-size: 100px;
-      cursor: pointer;
-      user-select: none;
-    }
-
-    .section {
-      margin: 20px auto;
-      max-width: 500px;
-    }
-
-    #wardrobeList div {
-      background: #f4f4f4;
-      border-radius: 8px;
-    }
-
-    @media (max-width: 600px) {
-      #egg {
-        font-size: 80px;
-      }
-    }
-  </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Eggy Clicker</title>
+<link rel="stylesheet" href="style.css">
 </head>
-
 <body>
 
-  <!-- LOGIN SCREEN -->
-  <div id="loginScreen" class="section">
-    <h1>🥚 Eggy Clicker</h1>
-    <input id="usernameInput" placeholder="Enter username">
-    <br><br>
-    <button onclick="startGame()">Start Game</button>
+<div id="app">
+
+  <h1>🥚 Eggy Clicker 🥚</h1>
+
+  <h3 id="rankDisplay">Rank: None</h3>
+
+  <div id="stats">
+    <div>Yolk: <span id="points">0</span></div>
+    <div>CPS: <span id="cps">0</span></div>
   </div>
 
-  <!-- GAME SCREEN -->
-  <div id="gameScreen" class="hidden">
-
-    <h2>Welcome, <span id="playerName"></span></h2>
-    <h3>Yolk: <span id="points">0</span></h3>
-    <h4 id="rankDisplay">Prestige 0</h4>
-    <h4 id="cpsDisplay">CPS: 0</h4>
-
+  <div id="eggContainer">
     <div id="egg">🥚</div>
-
-    <div class="section">
-      <button onclick="buyClickUpgrade()">Upgrade Click</button>
-      <button onclick="buyAutoUpgrade()">Upgrade Auto</button>
-      <button onclick="buyCritUpgrade()">Upgrade Crit</button>
-      <button id="prestigeBtn" onclick="prestige()">Prestige</button>
-    </div>
-
-    <div class="section">
-      <button onclick="changeBackground()">Change Background</button>
-      <button onclick="saveGame()">Save</button>
-      <button onclick="exportGame()">Export</button>
-      <button onclick="importGame()">Import</button>
-      <button onclick="deleteSave()">Delete Save</button>
-    </div>
-
-    <div class="section">
-      <h3>Wardrobe</h3>
-      <div id="wardrobeList"></div>
-    </div>
-
-    <div class="section">
-      <h3>Achievements</h3>
-      <div id="achievementList"></div>
-    </div>
-
-    <div class="section">
-      <button onclick="alert('Event system coming soon 🥚')">
-        🎉 Events
-      </button>
-    </div>
-
   </div>
 
-  <script src="game.js"></script>
+  <div class="panel blue">
+    <h3>Shop</h3>
+    <button id="clickUpgrade">Upgrade Click</button>
+    <button id="autoUpgrade">Auto Clicker</button>
+    <button id="critUpgrade">Crit Chance</button>
+  </div>
 
+  <div class="panel orange">
+    <h3>Prestige</h3>
+    <button id="prestigeBtn">Prestige</button>
+  </div>
+
+  <div class="panel">
+    <h3>Wardrobe</h3>
+    <button id="wardrobeToggle">Open Wardrobe</button>
+    <div id="wardrobePanel" class="hidden"></div>
+  </div>
+
+  <div class="panel">
+    <h3>Achievements</h3>
+    <div id="achievementList"></div>
+  </div>
+
+  <div class="panel">
+    <button id="saveBtn" class="green">Save</button>
+    <button id="deleteBtn" class="red">Delete</button>
+  </div>
+
+</div>
+
+<script src="game.js"></script>
 </body>
 </html>
