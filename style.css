@@ -1,138 +1,75 @@
-/* ============================= */
-/* 🥚 EGGY CLICKER INSANE STYLE */
-/* ============================= */
-
 body {
-  margin: 0;
-  font-family: Arial, Helvetica, sans-serif;
-  background: #ffffff;
-  text-align: center;
-  overflow-x: hidden;
+    margin: 0;
+    font-family: Arial, sans-serif;
+    background: white;
+    text-align: center;
 }
 
-/* Center Layout */
-#gameScreen {
-  max-width: 500px;
-  margin: auto;
-  padding: 20px;
+#app {
+    max-width: 500px;
+    margin: auto;
+    padding: 20px;
 }
 
-/* Egg */
+h1 {
+    margin-top: 10px;
+}
+
 #egg {
-  font-size: 120px;
-  cursor: pointer;
-  transition: transform 0.08s ease, filter 0.2s ease;
-  user-select: none;
+    font-size: 80px;
+    cursor: pointer;
+    margin: 20px 0;
 }
 
-#egg:hover {
-  transform: scale(1.08);
+.panel {
+    background: #f4f4f4;
+    padding: 15px;
+    margin: 15px 0;
+    border-radius: 10px;
 }
 
-#egg:active {
-  transform: scale(0.92);
-  filter: brightness(1.2);
+#shopPanel {
+    background: #d8ecff;
 }
 
-/* Glow Pulse */
-@keyframes eggGlow {
-  0% { filter: drop-shadow(0 0 5px gold); }
-  50% { filter: drop-shadow(0 0 25px gold); }
-  100% { filter: drop-shadow(0 0 5px gold); }
+#prestigePanel {
+    background: #ffe4c7;
 }
 
-.prestigeGlow {
-  animation: eggGlow 2s infinite;
+.orange {
+    background: orange;
+    border: none;
+    padding: 8px;
 }
 
-/* Buttons */
+.green {
+    background: #2ecc71;
+    border: none;
+    padding: 8px;
+}
+
+.red {
+    background: #e74c3c;
+    border: none;
+    padding: 8px;
+    color: white;
+}
+
 button {
-  padding: 10px 14px;
-  margin: 6px;
-  border-radius: 10px;
-  border: none;
-  font-weight: bold;
-  cursor: pointer;
-  transition: all 0.15s ease;
+    display: block;
+    width: 100%;
+    margin: 6px 0;
+    padding: 8px;
+    border-radius: 6px;
+    border: 1px solid #ccc;
+    cursor: pointer;
 }
 
-button:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 5px 15px rgba(0,0,0,0.15);
-}
-
-button:active {
-  transform: scale(0.95);
-}
-
-/* Specific Colors */
-#shopBtn { background:#3498db; color:white; }
-#prestigeBtn { background:#e67e22; color:white; }
-#deleteBtn { background:#e74c3c; color:white; }
-
-/* Wardrobe */
-#wardrobePanel button {
-  width: 90%;
-  margin: 4px auto;
-  display: block;
-}
-
-#wardrobePanel button[style*="lime"] {
-  box-shadow: 0 0 15px lime;
-}
-
-/* Achievements */
-.achievement {
-  padding: 8px;
-  margin: 4px;
-  border-radius: 8px;
-  font-size: 14px;
-}
-
-.locked {
-  background: #eee;
-  color: #999;
-}
-
-.unlocked {
-  background: gold;
-  color: black;
-  box-shadow: 0 0 10px gold;
-}
-
-/* Floating Numbers */
-.floatingNumber {
-  position: absolute;
-  font-weight: bold;
-  pointer-events: none;
-  animation: floatUp 1s forwards;
+.hidden {
+    display: none;
 }
 
 @keyframes floatUp {
-  0% { opacity:1; transform:translateY(0px); }
-  100% { opacity:0; transform:translateY(-60px); }
-}
-
-/* Screen Shake */
-@keyframes shake {
-  0% { transform: translate(0px,0px); }
-  25% { transform: translate(3px,-3px); }
-  50% { transform: translate(-3px,3px); }
-  75% { transform: translate(3px,3px); }
-  100% { transform: translate(0px,0px); }
-}
-
-.shake {
-  animation: shake 0.2s;
-}
-
-/* Mobile Friendly */
-@media (max-width:600px) {
-  #egg { font-size:90px; }
-  button { width:90%; }
-}
-
-/* Hidden */
-.hidden {
-  display:none;
+    from { opacity: 1; transform: translateY(0); }
+    to { opacity: 0; transform: translateY(-40px); }
 }
