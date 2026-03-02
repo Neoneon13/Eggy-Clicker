@@ -1,75 +1,75 @@
-body {
-    margin: 0;
-    font-family: Arial, sans-serif;
-    background: white;
-    text-align: center;
+body{
+  margin:0;
+  font-family:Arial;
+  background:white;
+  text-align:center;
 }
 
-#app {
-    max-width: 500px;
-    margin: auto;
-    padding: 20px;
+h1,h2,h3{ margin:8px; }
+
+button{
+  padding:10px;
+  margin:6px;
+  border:none;
+  border-radius:8px;
+  cursor:pointer;
+  font-weight:bold;
 }
 
-h1 {
-    margin-top: 10px;
+.blue{ background:#2196f3;color:white; }
+.orange{ background:orange;color:black; }
+.red{ background:#e53935;color:white; }
+.green{ background:#4caf50;color:white; }
+
+.panel{
+  background:#f4f4f4;
+  padding:15px;
+  margin:15px auto;
+  width:90%;
+  max-width:400px;
+  border-radius:10px;
 }
 
-#egg {
-    font-size: 80px;
-    cursor: pointer;
-    margin: 20px 0;
+#egg{
+  font-size:120px;
+  cursor:pointer;
+  transition:.1s;
+}
+#egg:active{ transform:scale(.9); }
+
+#wardrobeModal{
+  background:white;
+  padding:20px;
+  position:fixed;
+  top:10%;
+  left:50%;
+  transform:translateX(-50%);
+  width:90%;
+  max-width:400px;
+  border:2px solid black;
 }
 
-.panel {
-    background: #f4f4f4;
-    padding: 15px;
-    margin: 15px 0;
-    border-radius: 10px;
+.wardrobeItem{
+  border:2px solid #ccc;
+  margin:5px;
+  padding:8px;
+  border-radius:8px;
+  cursor:pointer;
 }
 
-#shopPanel {
-    background: #d8ecff;
+.equipped{
+  border:3px solid green;
 }
 
-#prestigePanel {
-    background: #ffe4c7;
+.locked{
+  opacity:.4;
 }
 
-.orange {
-    background: orange;
-    border: none;
-    padding: 8px;
-}
-
-.green {
-    background: #2ecc71;
-    border: none;
-    padding: 8px;
-}
-
-.red {
-    background: #e74c3c;
-    border: none;
-    padding: 8px;
-    color: white;
-}
-
-button {
-    display: block;
-    width: 100%;
-    margin: 6px 0;
-    padding: 8px;
-    border-radius: 6px;
-    border: 1px solid #ccc;
-    cursor: pointer;
-}
-
-.hidden {
-    display: none;
-}
-
-@keyframes floatUp {
-    from { opacity: 1; transform: translateY(0); }
-    to { opacity: 0; transform: translateY(-40px); }
+#notification{
+  position:fixed;
+  top:20px;
+  right:20px;
+  background:gold;
+  padding:10px;
+  display:none;
 }
