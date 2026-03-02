@@ -1,49 +1,66 @@
-// =========================
-// PRESTIGE SYSTEM
-// =========================
+// prestige.js – V2 Clean Infinite Prestige System
 
-const prestigeBtn = document.getElementById("prestigeBtn");
+function getPrestigeName(level) {
 
-let basePrestigeCost = 5000;
+    if (level === 0) return "None";
 
-function getPrestigeCost() {
-    return basePrestigeCost * (game.prestigeLevel + 1);
-}
+    // Bronze
+    if (level === 1) return "Bronze";
+    if (level === 2) return "Bronze II";
 
-function updatePrestigeUI() {
-    prestigeBtn.textContent =
-        "Prestige (Cost: " + getPrestigeCost() + ")";
-}
+    // Silver
+    if (level === 3) return "Silver";
+    if (level === 4) return "Silver II";
 
-prestigeBtn.addEventListener("click", () => {
+    // Gold
+    if (level === 5) return "Gold";
+    if (level === 6) return "Gold II";
 
-    const cost = getPrestigeCost();
+    // Diamond
+    if (level === 7) return "Diamond";
+    if (level === 8) return "Diamond II";
 
-    if (game.yolk >= cost) {
-
-        game.prestigeLevel++;
-
-        // Reset core progress
-        game.yolk = 0;
-        game.clickPower = 1;
-        game.autoClickers = 0;
-        game.critChance = 0;
-
-        // Prestige bonus scaling
-        game.clickPower += game.prestigeLevel;
-
-        // Reset shop costs
-        if (typeof clickCost !== "undefined") {
-            clickCost = 10;
-            autoCost = 50;
-            critCost = 100;
-        }
-
-        updatePrestigeUI();
-        updateUI();
-        updateShopUI();
+    // Master (9–18)
+    if (level >= 9 && level <= 18) {
+        const stage = level - 8; // 9 -> 1, 18 -> 10
+        if (stage === 1) return "Master";
+        return "Master " + toRoman(stage);
     }
-});
 
-// Init
-updatePrestigeUI();
+    // Ultimate Master (19+)
+    if (level >= 19) {
+        const stage = level - 18; // 19 -> 1
+        if (stage === 1) return "Ultimate Master";
+        return "Ultimate Master " + toRoman(stage);
+    }
+}
+
+// Roman numeral converter
+function toRoman(num) {
+    const map = [
+        { value: 1000, symbol: "M" },
+        { value: 900, symbol: "CM" },
+        { value: 500, symbol: "D" },
+        { value: 400, symbol: "CD" },
+        { value: 100, symbol: "C" },
+        { value: 90, symbol: "XC" },
+        { value: 50, symbol: "L" },
+        { value: 40, symbol: "XL" },
+        { value: 10, symbol: "X" },
+        { value: 9, symbol: "IX" },
+        { value: 5, symbol: "V" },
+        { value: 4, symbol: "IV" },
+        { value: 1, symbol: "I" }
+    ];
+
+    let result = "";
+
+    for (let i = 0; i < map.length; i++) {
+        while (num >= map[i].value) {
+            result += map[i].symbol;
+            num -= map[i].value;
+        }
+    }
+
+    return result;
+}
