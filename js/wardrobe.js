@@ -1,83 +1,120 @@
-// wardrobe.js – Clean Locked Tier System
+// =============================
+// WARDROBE ENGINE PRO V2
+// =============================
 
-const forms = ["Normal", "Cool", "Top Hat", "Crown"];
+const forms = ["Normal","Cool","Top Hat","Crown"];
 
-const tiers = [
-    { name: "None", unlock: 0, multiplier: 1 },
-    { name: "Bronze", unlock: 1, multiplier: 3 },
-    { name: "Silver", unlock: 3, multiplier: 6 },
-    { name: "Gold", unlock: 5, multiplier: 12 },
-    { name: "Diamond", unlock: 7, multiplier: 25 },
-    { name: "Master", unlock: 9, multiplier: 60 },
-    { name: "Ultimate", unlock: 19, multiplier: 150 }
+const wardrobeTiers = [
+    { name:"None", unlock:0, multiplier:1 },
+    { name:"Bronze", unlock:1, multiplier:3 },
+    { name:"Silver", unlock:3, multiplier:6 },
+    { name:"Gold", unlock:5, multiplier:12 },
+    { name:"Diamond", unlock:7, multiplier:25 },
+    { name:"Master", unlock:9, multiplier:60 },
+    { name:"Ultimate", unlock:19, multiplier:150 }
 ];
 
-function getPrice(tierIndex, formIndex) {
-    const base = [1000, 2500, 5000, 10000];
-    return base[formIndex] * tiers[tierIndex].multiplier;
+// OPEN
+function openWardrobe(){
+    renderWardrobe();
+    document.getElementById("wardrobeModal").style.display="block";
 }
 
-function openWardrobe() {
+function closeWardrobe(){
+    document.getElementById("wardrobeModal").style.display="none";
+}
+
+// RENDER
+function renderWardrobe(){
+
     const container = document.getElementById("wardrobeItems");
     container.innerHTML = "";
 
-    tiers.forEach((tier, tIndex) => {
-        const tierHeader = document.createElement("h3");
-        tierHeader.textContent = tier.name + " Tier";
-        container.appendChild(tierHeader);
+    wardrobeTiers.forEach((tier, tierIndex)=>{
 
-        forms.forEach((form, fIndex) => {
-            const item = document.createElement("div");
-            item.className = "wardrobeItem";
+        let header = document.createElement("h3");
+        header.innerText = tier.name + " Tier";
+        container.appendChild(header);
 
-            const owned = game.ownedSkins.includes(tier.name + "-" + form);
-            const equipped = game.equippedSkin === tier.name + "-" + form;
+        forms.forEach((form, formIndex)=>{
 
-            const price = getPrice(tIndex, fIndex);
+            let skinId = tier.name + "-" + form;
+            let price = getSkinPrice(tierIndex, formIndex);
 
-            item.innerHTML = `
-                <strong>${tier.name} ${form}</strong><br>
-                ${owned ? "Owned" : "Price: " + price}
-            `;
+            let div = document.createElement("div");
+            div.className = "wardrobeItem";
 
-            if (equipped) {
-                item.style.border = "3px solid green";
+            let owned = game.ownedSkins.includes(skinId);
+            let equipped = game.equippedSkin === skinId;
+            let locked = game.prestigeLevel < tier.unlock;
+
+            if(equipped){
+                div.classList.add("equipped");
             }
 
-            if (game.prestigeLevel < tier.unlock) {
-                item.style.opacity = "0.4";
-                item.onclick = () => alert("LOCKED");
-            } else {
-                item.onclick = () => handleSkinClick(tIndex, fIndex);
+            if(locked){
+                div.classList.add("locked");
+                div.innerText = skinId + " (LOCKED)";
+                div.onclick = ()=> notify("Locked until " + tier.name);
+            }
+            else{
+                if(owned){
+                    div.innerText = skinId + " (Owned)";
+                } else {
+                    div.innerText = skinId + " - " + price;
+                }
+
+                div.onclick = ()=> handleSkinClick(skinId, price);
             }
 
-            container.appendChild(item);
+            container.appendChild(div);
         });
     });
-
-    document.getElementById("wardrobeModal").style.display = "block";
 }
 
-function handleSkinClick(tIndex, fIndex) {
-    const tier = tiers[tIndex];
-    const form = forms[fIndex];
-    const id = tier.name + "-" + form;
-    const price = getPrice(tIndex, fIndex);
+// PRICE SYSTEM
+function getSkinPrice(tierIndex, formIndex){
 
-    if (game.ownedSkins.includes(id)) {
-        game.equippedSkin = id;
-        saveGame();
-        openWardrobe();
+    const basePrices = [1000, 2500, 5000, 10000];
+
+    return basePrices[formIndex] * wardrobeTiers[tierIndex].multiplier;
+}
+
+// BUY / EQUIP
+function handleSkinClick(skinId, price){
+
+    if(game.ownedSkins.includes(skinId)){
+        game.equippedSkin = skinId;
+        applySkinBonus();
+        renderWardrobe();
+        notify("Equipped!");
         return;
     }
 
-    if (game.money >= price) {
-        game.money -= price;
-        game.ownedSkins.push(id);
-        game.equippedSkin = id;
-        saveGame();
-        openWardrobe();
-    } else {
-        alert("Not enough coins");
+    if(game.money < price){
+        notify("Not enough Yolk!");
+        return;
     }
+
+    game.money -= price;
+    game.ownedSkins.push(skinId);
+    game.equippedSkin = skinId;
+
+    applySkinBonus();
+
+    renderWardrobe();
+    updateUI();
+    notify("Purchased!");
+}
+
+// BONUS SYSTEM
+function applySkinBonus(){
+
+    let tierName = game.equippedSkin.split("-")[0];
+
+    let tier = wardrobeTiers.find(t=>t.name===tierName);
+
+    if(!tier) return;
+
+    game.clickPower = 1 + tier.multiplier;
 }
