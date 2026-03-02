@@ -1,64 +1,82 @@
-// prestige.js – V2 Clean Infinite Prestige System
+// =============================
+// PRESTIGE ENGINE V2 (FINAL)
+// =============================
 
-function getPrestigeName(level) {
+function prestige(){
 
-    if (level === 0) return "None";
-
-    // Bronze
-    if (level === 1) return "Bronze";
-    if (level === 2) return "Bronze II";
-
-    // Silver
-    if (level === 3) return "Silver";
-    if (level === 4) return "Silver II";
-
-    // Gold
-    if (level === 5) return "Gold";
-    if (level === 6) return "Gold II";
-
-    // Diamond
-    if (level === 7) return "Diamond";
-    if (level === 8) return "Diamond II";
-
-    // Master (9–18)
-    if (level >= 9 && level <= 18) {
-        const stage = level - 8; // 9 -> 1, 18 -> 10
-        if (stage === 1) return "Master";
-        return "Master " + toRoman(stage);
+    if(game.money < 5000){
+        notify("Need 5000 Yolk to Prestige!");
+        return;
     }
 
-    // Ultimate Master (19+)
-    if (level >= 19) {
-        const stage = level - 18; // 19 -> 1
-        if (stage === 1) return "Ultimate Master";
-        return "Ultimate Master " + toRoman(stage);
+    game.money = 0;
+    game.autoPower = 0;
+    game.clickPower = 1;
+    game.critChance = 0.05;
+
+    game.prestigeLevel++;
+
+    notify("Prestiged to " + getRank(game.prestigeLevel));
+
+    updateUI();
+}
+
+// Rank Name Generator
+function getRank(level){
+
+    if(level === 0) return "Rank: None";
+
+    if(level === 1) return "Rank: Bronze";
+    if(level === 2) return "Rank: Bronze II";
+
+    if(level === 3) return "Rank: Silver";
+    if(level === 4) return "Rank: Silver II";
+
+    if(level === 5) return "Rank: Gold";
+    if(level === 6) return "Rank: Gold II";
+
+    if(level === 7) return "Rank: Diamond";
+    if(level === 8) return "Rank: Diamond II";
+
+    // MASTER 9–18
+    if(level >= 9 && level <= 18){
+        let stage = level - 8; // 9 → 1
+        if(stage === 1) return "Rank: Master";
+        return "Rank: Master " + toRoman(stage);
+    }
+
+    // ULTIMATE 19+
+    if(level >= 19){
+        let stage = level - 18; // 19 → 1
+        if(stage === 1) return "Rank: Ultimate Master";
+        return "Rank: Ultimate Master " + toRoman(stage);
     }
 }
 
-// Roman numeral converter
-function toRoman(num) {
+// Roman Numerals
+function toRoman(num){
     const map = [
-        { value: 1000, symbol: "M" },
-        { value: 900, symbol: "CM" },
-        { value: 500, symbol: "D" },
-        { value: 400, symbol: "CD" },
-        { value: 100, symbol: "C" },
-        { value: 90, symbol: "XC" },
-        { value: 50, symbol: "L" },
-        { value: 40, symbol: "XL" },
-        { value: 10, symbol: "X" },
-        { value: 9, symbol: "IX" },
-        { value: 5, symbol: "V" },
-        { value: 4, symbol: "IV" },
-        { value: 1, symbol: "I" }
+        {v:1000,s:"M"},
+        {v:900,s:"CM"},
+        {v:500,s:"D"},
+        {v:400,s:"CD"},
+        {v:100,s:"C"},
+        {v:90,s:"XC"},
+        {v:50,s:"L"},
+        {v:40,s:"XL"},
+        {v:10,s:"X"},
+        {v:9,s:"IX"},
+        {v:5,s:"V"},
+        {v:4,s:"IV"},
+        {v:1,s:"I"}
     ];
 
     let result = "";
 
-    for (let i = 0; i < map.length; i++) {
-        while (num >= map[i].value) {
-            result += map[i].symbol;
-            num -= map[i].value;
+    for(let i=0;i<map.length;i++){
+        while(num >= map[i].v){
+            result += map[i].s;
+            num -= map[i].v;
         }
     }
 
